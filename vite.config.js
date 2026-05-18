@@ -21,14 +21,6 @@ export default defineConfig({
   build: {
     // Increase warning limit — our single-file approach is intentional
     chunkSizeWarningLimit: 1200,
-    rollupOptions: {
-      output: {
-        // Split vendor chunk for better caching
-        manualChunks: {
-          react: ['react', 'react-dom'],
-        },
-      },
-    },
   },
 
   // Dev server tweaks
