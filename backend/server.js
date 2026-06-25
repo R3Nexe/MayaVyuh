@@ -34,9 +34,10 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-});
+let openai = null;
+if (process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY !== 'your_openai_api_key_here') {
+  openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+}
 
 const server = http.createServer(app);
 const io = new Server(server, {
@@ -46,13 +47,16 @@ const io = new Server(server, {
   }
 });
 
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => {
-    console.log('MongoDB Connected');
-    const PORT = process.env.PORT || 5000;
-    server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-  })
-  .catch(err => console.log("MongoDB Connection Error:", err));
+const PORT = process.env.PORT || 5000;
+server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+if (process.env.MONGO_URI) {
+  mongoose.connect(process.env.MONGO_URI)
+    .then(() => console.log('MongoDB Connected'))
+    .catch(err => console.log("MongoDB Connection Error:", err));
+} else {
+  console.warn('WARNING: MONGO_URI is not set. Database features will not work.');
+}
 
 app.post('/api/upload', upload.single('image'), (req, res) => {
   if (!req.file) return res.status(400).json({ error: "No file uploaded" });
@@ -132,7 +136,7 @@ app.post('/api/generate', async (req, res) => {
     const { prompt } = req.body;
     if (!prompt) return res.status(400).json({ error: "Prompt is required" });
     
-    if (process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY !== 'your_openai_api_key_here') {
+    if (openai) {
       const response = await openai.images.generate({
         model: "dall-e-3",
         prompt: prompt,
