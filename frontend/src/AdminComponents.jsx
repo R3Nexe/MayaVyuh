@@ -735,8 +735,7 @@ export const AdminDashboard = ({ teams, setTeams, eventState, setEventState }) =
                 {[1, 2, 3].map(r => {
                   const isActive = status === `round${r}_active`;
                   const isEnded = status === `round${r}_ended`;
-                  const isIdle = !status || status === 'waiting' || status === 'lobby' || status === 'finished';
-                  const canStart = (isIdle && r === 1) || status === `round${r-1}_ended` || status === `round${r}_ended`;
+                  const canStart = true; // Bypassed: (isIdle && r === 1) || status === `round${r-1}_ended` || status === `round${r}_ended`;
                   return (
                     <div key={r} className="imperial-glass imperial-panel" style={{ padding: 32, transition: "all 0.5s", border: isActive ? "1px solid rgba(212, 175, 55, 0.8)" : "1px solid rgba(212, 175, 55, 0.15)", boxShadow: isActive ? "0 0 40px rgba(212, 175, 55, 0.15), inset 0 0 20px rgba(212, 175, 55, 0.05)" : "none" }}>
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 32 }}>
@@ -845,6 +844,11 @@ export const AdminDashboard = ({ teams, setTeams, eventState, setEventState }) =
                     </div>
                     <div style={{ fontSize: 10, color: "rgba(255,255,255,0.5)", letterSpacing: 1 }}>
                       P1: {t.player1} <br/> P2: {t.player2}
+                    </div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 4 }}>
+                      {t.r1Link && <a href={t.r1Link} target="_blank" rel="noreferrer" style={{ fontSize: 10, color: "var(--neon-cyan)", textDecoration: "none", letterSpacing: 1 }}>➔ VERIFY R1 CHAT SNAPSHOT</a>}
+                      {t.r2Link && <a href={t.r2Link} target="_blank" rel="noreferrer" style={{ fontSize: 10, color: "var(--neon-cyan)", textDecoration: "none", letterSpacing: 1 }}>➔ VERIFY R2 CHAT SNAPSHOT</a>}
+                      {t.r3Link && <a href={t.r3Link} target="_blank" rel="noreferrer" style={{ fontSize: 10, color: "var(--neon-cyan)", textDecoration: "none", letterSpacing: 1 }}>➔ VERIFY R3 CHAT SNAPSHOT</a>}
                     </div>
                     <button className={t.status === "banned" ? "btn-imperial" : "btn-imperial-danger"} style={{ padding: "12px", fontSize: 10, letterSpacing: 2, marginTop: 8 }} onClick={() => toggleBan(t.id)}>
                       {t.status === "banned" ? "RESTORE TO GLORY" : "BANISH FROM DATACRON"}

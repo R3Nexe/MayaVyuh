@@ -66,6 +66,20 @@ app.post('/api/upload', upload.single('image'), (req, res) => {
 const apiRoutes = require('./routes/api');
 app.use('/api/game', apiRoutes);
 
+const usedGeminiLinks = new Set();
+
+app.post('/api/verify-gemini', (req, res) => {
+  const { link } = req.body;
+  if (!link || !link.toLowerCase().includes('gemini')) {
+    return res.status(400).json({ error: "Invalid Gemini Link. It must be a valid Google Gemini URL." });
+  }
+  if (usedGeminiLinks.has(link)) {
+    return res.status(400).json({ error: "This Gemini link has already been submitted by another team. You must use your own chat." });
+  }
+  usedGeminiLinks.add(link);
+  res.json({ success: true });
+});
+
 let currentTargetIndex = 0;
 
 app.get('/api/target-image', async (req, res) => {
@@ -215,6 +229,7 @@ app.post('/api/game/start', async (req, res) => {
       session.isPaused = false;
       session.pausedAt = null;
       session.timeRemainingAtPause = null;
+      usedGeminiLinks.clear();
       // Note: purging teams is handled via global reset in frontend/db
     } else {
       return res.status(400).json({ error: 'Unknown action' });

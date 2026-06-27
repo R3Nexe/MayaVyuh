@@ -127,56 +127,138 @@ const IntervalScreen = ({ title, message, timeLeft }) => (
 );
 
 const RoundDisplay = ({ playerLabel, targetImage, onComplete, roundLabel, storageKey, isPaused, timeLeft, isRoundEnded }) => {
-  const [prompt, setPrompt] = useState("");
-  const [messages, setMessages] = usePersistentState(`${storageKey}_msgs`, []);
-  const [generating, setGenerating] = useState(false);
-  const scrollRef = useRef(null);
-
-  useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
-  }, [messages, generating]);
-
-  const handleGenerate = async () => {
-    if (!prompt.trim() || isPaused || isRoundEnded) return;
-    const currentPrompt = prompt;
-    setPrompt("");
-    
-    const newMsgs = [...messages, { role: "user", content: currentPrompt }];
-    setMessages(newMsgs);
-    setGenerating(true);
-
-    try {
-      const res = await fetch("http://localhost:5001/api/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt: currentPrompt })
-      });
-      if (!res.ok) throw new Error("Generation failed");
-      const data = await res.json();
-      if (data.images && data.images[0]) {
-        setMessages([...newMsgs, { role: "ai", type: "image", content: data.images[0] }]);
-      }
-    } catch (e) {
-      console.error(e);
-      setMessages([...newMsgs, { role: "ai", type: "image", content: `https://picsum.photos/seed/${Date.now()}/400/400` }]);
-    }
-    setGenerating(false);
-  };
-
-  const handleKeyDown = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleGenerate();
-    }
-  };
+  const [uploading, setUploading] = useState(false);
+  const [uploadedImgUrl, setUploadedImgUrl] = useState(null);
+  const [isGeminiLaunched, setIsGeminiLaunched] = useState(false);
+  const [geminiLink, setGeminiLink] = useState("");
+  const [verifying, setVerifying] = useState(false);
 
   const fmtTime = (s) => `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;
 
+  const handleOpenGemini = () => {
+    const sw = window.screen.availWidth;
+    const sh = window.screen.availHeight;
+    const half = Math.floor(sw / 2);
+
+    // Open Gemini on the right half
+    window.open('https://gemini.google.com', 'GeminiPopup', `width=${half},height=${sh},left=${half},top=0`);
+    
+    // Attempt to resize current window to the left half
+    try {
+      window.moveTo(0, 0);
+      window.resizeTo(half, sh);
+    } catch (e) {
+      console.warn("Browser blocked window resize", e);
+    }
+    
+    setIsGeminiLaunched(true);
+  };
+
+  const handleUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setUploading(true);
+    const formData = new FormData();
+    formData.append("image", file);
+    try {
+      const uploadRes = await fetch("http://localhost:5001/api/upload", { method: "POST", body: formData });
+      const { url } = await uploadRes.json();
+      setUploadedImgUrl("http://localhost:5001" + url);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to upload image. Please try again.");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleSubmit = async () => {
+    if (!geminiLink.trim()) {
+      alert("SECURITY LOCK: You must paste your Gemini Chat Link to verify this spell.");
+      return;
+    }
+    setVerifying(true);
+    try {
+      const res = await fetch("http://localhost:5001/api/verify-gemini", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ link: geminiLink })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        alert("LOCK REJECTED: " + (data.error || "Verification failed."));
+        return;
+      }
+      onComplete(uploadedImgUrl, geminiLink);
+    } catch(err) {
+      alert("Error verifying the Gemini link.");
+    } finally {
+      setVerifying(false);
+    }
+  };
+
+  if (isGeminiLaunched) {
+    return (
+      <motion.div layout initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', width: "50vw", padding: "32px 40px", boxSizing: "border-box", position: "relative", zIndex: 1 }}>
+        
+        {/* Header Row */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 32 }}>
+          <div style={{ fontSize: 40, fontFamily: "'Orbitron'", color: isPaused ? "#ff2a2a" : "#D4AF37", textShadow: `0 0 10px ${isPaused ? 'rgba(255,42,42,0.5)' : 'rgba(212,175,55,0.5)'}`, letterSpacing: 2 }}>
+            {fmtTime(timeLeft)}
+          </div>
+          <div className="title-secondary" style={{ marginBottom: 0, border: "none", fontSize: 24, letterSpacing: 2, color: "var(--neon-cyan)" }}>
+            {roundLabel}
+          </div>
+        </div>
+        
+        {/* Main Panel */}
+        <motion.div layout className="glass-panel" style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", padding: "32px", width: "100%", maxWidth: "800px", margin: "0 auto", boxSizing: "border-box" }}>
+           <div className="title-secondary" style={{ marginBottom: 24, fontSize: 20 }}>TARGET DATACRON</div>
+           
+           {targetImage ? (
+              <motion.div layout style={{ width: "100%", flex: 1, minHeight: 300, display: "flex", justifyContent: "center", alignItems: "center", background: "rgba(0,0,0,0.3)", borderRadius: 8, padding: 16, border: "1px solid rgba(255,255,255,0.1)", marginBottom: 24 }}>
+                <motion.img layoutId="target-image" src={targetImage} alt="target" style={{ maxWidth: "100%", maxHeight: "50vh", objectFit: "contain", borderRadius: 4, boxShadow: "0 0 20px rgba(0,0,0,0.5)" }} />
+              </motion.div>
+           ) : (
+              <div style={{ flex: 1, display: "flex", justifyContent: "center", alignItems: "center", color: "var(--text-dim)", fontFamily: "'Orbitron'" }}>NO TARGET</div>
+           )}
+
+           {!uploadedImgUrl ? (
+              <motion.label layout style={{ width: "100%", cursor: uploading ? "not-allowed" : "pointer" }}>
+                <div style={{ width: "100%", padding: "16px", border: "1px solid rgba(0, 255, 255, 0.3)", borderRadius: 8, background: "rgba(0,0,0,0.6)", textAlign: "center", transition: "all 0.3s", boxShadow: "inset 0 0 10px rgba(0, 255, 255, 0.05)" }}>
+                  <span style={{ color: uploading ? "var(--text-dim)" : "var(--neon-cyan)", fontSize: 16, letterSpacing: 2, fontFamily: "'Orbitron'", fontWeight: "bold" }}>
+                    {uploading ? "UPLOADING ARTIFACT..." : "UPLOAD GENERATED IMAGE"}
+                  </span>
+                  <input type="file" accept="image/*" style={{ display: "none" }} onChange={handleUpload} disabled={uploading} />
+                </div>
+              </motion.label>
+           ) : (
+              <motion.div layout style={{ width: "100%" }}>
+                <div className="title-secondary" style={{ marginBottom: 16, fontSize: 16 }}>REVIEW SPELL</div>
+                <div style={{ width: "100%", display: "flex", justifyContent: "center", alignItems: "center", background: "rgba(0,0,0,0.3)", borderRadius: 8, padding: 16, border: "1px solid rgba(212, 175, 55, 0.4)", marginBottom: 24 }}>
+                  <img src={uploadedImgUrl} alt="generated preview" style={{ maxWidth: "100%", maxHeight: "30vh", objectFit: "contain", borderRadius: 4 }} />
+                </div>
+                
+                <div style={{ width: "100%", marginBottom: 16 }}>
+                  <div style={{ color: "var(--neon-cyan)", fontSize: 12, marginBottom: 8, letterSpacing: 2 }}>GEMINI CHAT LINK:</div>
+                  <input type="url" placeholder="https://gemini.google.com/app/6c03e86xxxxxxxx3" value={geminiLink} onChange={e=>setGeminiLink(e.target.value)} style={{ width: "100%", padding: "16px", background: "rgba(0,0,0,0.5)", border: "1px solid var(--neon-cyan)", color: "#fff", fontFamily: "'Share Tech Mono'", outline: "none", borderRadius: 4 }} />
+                </div>
+                
+                <div style={{ display: "flex", gap: 16 }}>
+                  <button className="btn-imperial-danger" style={{ flex: 1, padding: 16 }} onClick={() => setUploadedImgUrl(null)}>RETRY</button>
+                  <button className="btn-imperial" style={{ flex: 2, padding: 16, borderColor: "var(--neon-green)", color: "var(--neon-green)", opacity: verifying ? 0.5 : 1 }} onClick={handleSubmit} disabled={verifying}>
+                    {verifying ? "VERIFYING..." : "SUBMIT TO DATACRON ➔"}
+                  </button>
+                </div>
+              </motion.div>
+           )}
+        </motion.div>
+      </motion.div>
+    );
+  }
+
   return (
-    <div className="chat-layout">
-      {}
+    <motion.div layout className="chat-layout" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+      {/* Sidebar */}
       <div className="chat-sidebar">
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
           <img src={gdgLogo} alt="GDG Logo" style={{ width: 40 }} />
@@ -195,60 +277,42 @@ const RoundDisplay = ({ playerLabel, targetImage, onComplete, roundLabel, storag
 
         <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
           <div style={{ color: "var(--text-dim)", marginBottom: 8, fontSize: 14 }}>TARGET DATACRON:</div>
-          <div className="glass-panel" style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: 0, maxHeight: 400 }}>
-            {targetImage ? <img src={targetImage} alt="target" style={{ width: "100%", height: "100%", objectFit: "contain" }} /> : <div style={{ color: "var(--text-dim)", fontFamily: "'Orbitron'" }}>NO TARGET</div>}
-          </div>
+          <motion.div layout className="glass-panel" style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: 0, maxHeight: 400, overflow: "hidden" }}>
+            {targetImage ? <motion.img layoutId="target-image" src={targetImage} alt="target" style={{ width: "100%", height: "100%", objectFit: "contain" }} /> : <div style={{ color: "var(--text-dim)", fontFamily: "'Orbitron'" }}>NO TARGET</div>}
+          </motion.div>
         </div>
       </div>
 
-      {}
-      <div className="chat-main">
-        <div className="chat-history" ref={scrollRef}>
-          {messages.length === 0 && (
-            <div style={{ margin: "auto", textAlign: "center", color: "var(--text-dim)", opacity: 0.5 }}>
-              <div style={{ fontSize: 64, marginBottom: 16 }}>✨</div>
-              <div style={{ fontFamily: "'Orbitron'", letterSpacing: 2 }}>AWAITING COMMAND...</div>
+      {/* Main Action Area */}
+      <motion.div layout className="chat-main" style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 40 }}>
+        {isRoundEnded ? (
+          <div style={{ textAlign: "center" }}>
+             <div style={{ fontSize: 64, marginBottom: 16 }}>🔒</div>
+             <div style={{ fontFamily: "'Orbitron'", fontSize: 24, color: "var(--neon-red)" }}>PHASE SEALED</div>
+             <div style={{ color: "var(--text-dim)", marginTop: 16 }}>This phase has been closed by the Admin.</div>
+          </div>
+        ) : isPaused ? (
+          <div style={{ textAlign: "center" }}>
+             <div style={{ fontSize: 64, marginBottom: 16 }}>⏸️</div>
+             <div style={{ fontFamily: "'Orbitron'", fontSize: 24, color: "#ff2a2a" }}>DATACRON PAUSED</div>
+             <div style={{ color: "var(--text-dim)", marginTop: 16 }}>Wait for the Admin to resume the phase.</div>
+          </div>
+        ) : (
+          <div className="glass-panel" style={{ width: "100%", maxWidth: 600, textAlign: "center", padding: 48 }}>
+            <div style={{ fontSize: 48, marginBottom: 24 }}>✨</div>
+            <div style={{ fontFamily: "'Orbitron'", fontSize: 24, color: "var(--neon-gold)", marginBottom: 16 }}>SPELL GENERATION</div>
+            <div style={{ color: "var(--text-dim)", marginBottom: 32, lineHeight: 1.6 }}>
+              Launch Gemini in Split-Screen Mode to generate your spell.<br/>
+              Your target image will remain visible here.
             </div>
-          )}
-          
-          {messages.map((msg, i) => (
-            <div key={i} className={`chat-msg ${msg.role}`}>
-              {msg.role === "user" ? (
-                msg.content
-              ) : (
-                <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-                  <img src={msg.content} alt="generated" style={{ width: "100%", borderRadius: 8, marginBottom: 16 }} />
-                  <button className="btn btn-gold" style={{ width: "100%" }} onClick={() => onComplete(msg.content)}>SUBMIT THIS ➔</button>
-                </div>
-              )}
-            </div>
-          ))}
-
-          {generating && (
-            <div className="chat-msg ai" style={{ display: "flex", alignItems: "center", gap: 12, padding: "20px 24px" }}>
-              <span style={{ animation: "pulse 1s infinite" }}>✨</span>
-              <span style={{ fontFamily: "'Share Tech Mono'", color: "var(--neon-cyan)" }}>Synthesizing Spell...</span>
-            </div>
-          )}
-        </div>
-
-        <div className="chat-input-area">
-          <div className="chat-input-box">
-            <textarea 
-              placeholder={isPaused ? "DATACRON PAUSED" : isRoundEnded ? "PHASE SEALED. SELECT AN ARTIFACT ABOVE." : "Describe the target to generate..."} 
-              value={prompt} 
-              onChange={e=>setPrompt(e.target.value)}
-              onKeyDown={handleKeyDown}
-              rows={1}
-              disabled={generating || isPaused || isRoundEnded}
-            />
-            <button className="chat-send-btn" onClick={handleGenerate} disabled={generating || !prompt.trim() || isPaused || isRoundEnded}>
-              ➔
+            
+            <button className="btn-imperial" onClick={handleOpenGemini} style={{ width: "100%", padding: 20, fontSize: 16, display: "flex", justifyContent: "center", gap: 12 }}>
+              LAUNCH GEMINI (SPLIT SCREEN) ➔
             </button>
           </div>
-        </div>
-      </div>
-    </div>
+        )}
+      </motion.div>
+    </motion.div>
   );
 };
 
@@ -451,11 +515,11 @@ const PlayerSection = ({ globalTeams, setGlobalTeams, eventState }) => {
   const status = session?.status || 'waiting';
 
   if (phase === "lobby") return <LobbyScreen />;
-  if (phase === "r1") return <RoundDisplay storageKey="r1" playerLabel={`PLAYER 1 (${myTeam.player1})`} targetImage={targetImage} roundLabel="ROUND 1: INITIAL CREATION" onComplete={img => { setR1Img(img); updateTeamStatus({ round: 1 }); setPhase("interval1"); }} isPaused={isPaused} timeLeft={timeLeft} isRoundEnded={status === 'round1_ended'} />;
+  if (phase === "r1") return <RoundDisplay storageKey="r1" playerLabel={`PLAYER 1 (${myTeam.player1})`} targetImage={targetImage} roundLabel="ROUND 1: INITIAL CREATION" onComplete={(img, link) => { setR1Img(img); updateTeamStatus({ round: 1, r1Link: link }); setPhase("interval1"); }} isPaused={isPaused} timeLeft={timeLeft} isRoundEnded={status === 'round1_ended'} />;
   if (phase === "interval1") return <IntervalScreen title="VERBAL TRANSFER" message={`PLAYER 1 (${myTeam.player1}), describe the target image to PLAYER 2 (${myTeam.player2}) verbally. Do not show them the screen!`} timeLeft={timeLeft} />;
-  if (phase === "r2") return <RoundDisplay storageKey="r2" playerLabel={`PLAYER 2 (${myTeam.player2})`} targetImage={null} roundLabel="ROUND 2: BLIND RECREATION" onComplete={img => { setR2Img(img); updateTeamStatus({ round: 2 }); setPhase("wait_for_r3"); }} isPaused={isPaused} timeLeft={timeLeft} isRoundEnded={status === 'round2_ended'} />;
+  if (phase === "r2") return <RoundDisplay storageKey="r2" playerLabel={`PLAYER 2 (${myTeam.player2})`} targetImage={null} roundLabel="ROUND 2: BLIND RECREATION" onComplete={(img, link) => { setR2Img(img); updateTeamStatus({ round: 2, r2Link: link }); setPhase("wait_for_r3"); }} isPaused={isPaused} timeLeft={timeLeft} isRoundEnded={status === 'round2_ended'} />;
   if (phase === "wait_for_r3") return <IntervalScreen title="HOLD POSITION" message="AWAITING ADMIN PROTOCOL FOR ROUND 3" timeLeft={timeLeft} />;
-  if (phase === "r3") return <RoundDisplay storageKey="r3" playerLabel={`PLAYER 1 (${myTeam.player1})`} targetImage={r2Img} roundLabel="ROUND 3: REFINEMENT" onComplete={img => { setR3Img(img); setPhase("select"); }} isPaused={isPaused} timeLeft={timeLeft} isRoundEnded={status === 'round3_ended'} />;
+  if (phase === "r3") return <RoundDisplay storageKey="r3" playerLabel={`PLAYER 1 (${myTeam.player1})`} targetImage={r2Img} roundLabel="ROUND 3: REFINEMENT" onComplete={(img, link) => { setR3Img(img); updateTeamStatus({ r3Link: link }); setPhase("select"); }} isPaused={isPaused} timeLeft={timeLeft} isRoundEnded={status === 'round3_ended'} />;
   if (phase === "select") return <SelectionScreen imgR2={r2Img} imgR3={r3Img} onSelect={async (img) => { 
     setFinalImg(img); 
     setPhase("judgment"); 
