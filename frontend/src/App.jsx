@@ -29,12 +29,39 @@ const RegistrationScreen = ({ onRegister }) => {
   const [teamName, setTeamName] = useState("");
   const [p1, setP1] = useState("");
   const [p2, setP2] = useState("");
+  const [registering, setRegistering] = useState(false);
 
-  const handleRegister = (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
     if (!teamName || !p1 || !p2) return;
-    const teamId = Date.now().toString();
-    onRegister({ id: teamId, name: teamName, player1: p1, player2: p2, status: "active", round: 0 });
+    
+    setRegistering(true);
+    try {
+      const res = await fetch(`${API}/api/game/teams/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ teamName, player1: p1, player2: p2, role: "observer" }) // Use a default role or adjust as needed
+      });
+      const data = await res.json();
+      
+      if (data.success && data.team) {
+        onRegister({ 
+          id: data.team._id, 
+          name: data.team.name, 
+          player1: data.team.observer, 
+          player2: data.team.creator, 
+          status: data.team.status, 
+          round: 0 
+        });
+      } else {
+        alert(data.error || "Registration failed on server.");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Failed to connect to backend for registration.");
+    } finally {
+      setRegistering(false);
+    }
   };
 
   return (
@@ -97,8 +124,8 @@ const RegistrationScreen = ({ onRegister }) => {
               />
             </div>
 
-            <button type="submit" className="btn-imperial" style={{ width: "100%", padding: 20, letterSpacing: 4, fontSize: 14, display: "flex", justifyContent: "center", alignItems: "center", gap: 12 }}>
-              INITIALIZE CONNECTION <Crosshair size={16} />
+            <button type="submit" disabled={registering} className="btn-imperial" style={{ width: "100%", padding: 20, letterSpacing: 4, fontSize: 14, display: "flex", justifyContent: "center", alignItems: "center", gap: 12 }}>
+              {registering ? "ENLISTING..." : "INITIALIZE CONNECTION"} <Crosshair size={16} />
             </button>
           </form>
         </motion.div>
