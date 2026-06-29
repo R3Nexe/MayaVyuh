@@ -216,8 +216,6 @@ function useAntiCheat({ isPlayer, teamId, onDisqualify, isPaused, forceCloseWind
     document.addEventListener("contextmenu", handleContextMenu);
     document.addEventListener("dragstart", handleDragStart);
     document.addEventListener("paste", handlePaste);
-    window.addEventListener("blur", handleWindowBlur);
-    window.addEventListener("focus", handleWindowFocus);
     window.addEventListener("keydown", handleKeyDown, true); // capture phase
 
     return () => {
@@ -225,8 +223,6 @@ function useAntiCheat({ isPlayer, teamId, onDisqualify, isPaused, forceCloseWind
       document.removeEventListener("contextmenu", handleContextMenu);
       document.removeEventListener("dragstart", handleDragStart);
       document.removeEventListener("paste", handlePaste);
-      window.removeEventListener("blur", handleWindowBlur);
-      window.removeEventListener("focus", handleWindowFocus);
       window.removeEventListener("keydown", handleKeyDown, true);
       clearInterval(devToolsCheckInterval);
       clearTimeout(bannerTimerRef.current);
