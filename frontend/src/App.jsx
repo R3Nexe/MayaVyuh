@@ -686,26 +686,21 @@ return (
 
       <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
         <div style={{ color: "var(--text-dim)", marginBottom: 8, fontSize: 14 }}>TARGET DATACRON:</div>
-<<<<<<< HEAD
-{/* ac-protected-content: blurs on focus loss */ }
-<motion.div layout className="glass-panel ac-protected-content" style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: 0, maxHeight: 400, overflow: "hidden" }}>
-  {targetImage ? <motion.img layoutId="target-image" src={targetImage} alt="target" style={{ width: "100%", height: "100%", objectFit: "contain" }} /> : <div style={{ color: "var(--text-dim)", fontFamily: "'Orbitron'" }}>NO TARGET</div>}
-=======
-          <motion.div layout className="glass-panel" style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: 0, maxHeight: 400, overflow: "hidden" }}>
-    {isPaused || isRoundEnded ? (
-      <div style={{ color: "var(--text-dim)", fontFamily: "'Orbitron'", textAlign: "center", padding: 16 }}>
-        <div style={{ fontSize: 32, marginBottom: 8 }}>{isPaused ? "⏸️" : "🔒"}</div>
-        {isPaused ? "TARGET HIDDEN" : "PHASE SEALED"}
-      </div>
-    ) : targetImage ? (
-      <motion.img layoutId="target-image" src={targetImage} alt="target" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
-    ) : (
-      <div style={{ color: "var(--text-dim)", fontFamily: "'Orbitron'", textAlign: "center", padding: 16 }}>
-        <div style={{ fontSize: 32, marginBottom: 8, opacity: 0.5 }}>👁️‍🗨️</div>
-        BLIND RECREATION<br />NO TARGET
-      </div>
-    )}
->>>>>>> 1c10010 (Update anti-cheat, Gemini link persistence, locking mechanism, and admin telemetry)
+        {/* ac-protected-content: blurs on focus loss */}
+        <motion.div layout className="glass-panel ac-protected-content" style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: 0, maxHeight: 400, overflow: "hidden" }}>
+          {isPaused || isRoundEnded ? (
+            <div style={{ color: "var(--text-dim)", fontFamily: "'Orbitron'", textAlign: "center", padding: 16 }}>
+              <div style={{ fontSize: 32, marginBottom: 8 }}>{isPaused ? "⏸️" : "🔒"}</div>
+              {isPaused ? "TARGET HIDDEN" : "PHASE SEALED"}
+            </div>
+          ) : targetImage ? (
+            <motion.img layoutId="target-image" src={targetImage} alt="target" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+          ) : (
+            <div style={{ color: "var(--text-dim)", fontFamily: "'Orbitron'", textAlign: "center", padding: 16 }}>
+              <div style={{ fontSize: 32, marginBottom: 8, opacity: 0.5 }}>👁️‍🗨️</div>
+              BLIND RECREATION<br />NO TARGET
+            </div>
+          )}
   </motion.div>
 </div>
       </div >
