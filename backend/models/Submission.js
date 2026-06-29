@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 
 const submissionSchema = new mongoose.Schema({
   team: { type: mongoose.Schema.Types.ObjectId, ref: 'Team', required: true },
+  teamName: { type: String, required: true },
   round: { type: Number, required: true },
   finalImageUrl: { type: String, required: true },
   similarityScore: { type: Number, default: null },

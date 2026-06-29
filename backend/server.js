@@ -143,7 +143,7 @@ app.post('/api/player/upload-submission', upload.single('image'), async (req, re
 
     await Submission.findOneAndUpdate(
       { team: teamId, round: round },
-      { finalImageUrl: fullUrl },
+      { finalImageUrl: fullUrl, teamName: team.name },
       { upsert: true, new: true, setDefaultsOnInsert: true }
     );
 
