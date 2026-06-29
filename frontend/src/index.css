@@ -74,7 +74,12 @@ img {
   color: #f5b800;
 }
 
-/* ANTI CHEAT */
+/* ============================================================
+   ANTI-CHEAT: Layer 1 — CSS-level protections
+   These are silent and never produce alerts or visible errors.
+   ============================================================ */
+
+/* Block text selection everywhere except inputs/textareas */
 body {
   user-select: none;
   -webkit-user-select: none;
@@ -82,18 +87,85 @@ body {
   -ms-user-select: none;
 }
 
+/* Block all image drag-and-drop and right-click context menus */
 img {
   -webkit-user-drag: none;
   -khtml-user-drag: none;
   -moz-user-drag: none;
   -o-user-drag: none;
-  pointer-events: none; /* Prevents right click and long press */
+  pointer-events: none;
 }
 
+/* Restore pointer events and selection for inputs/textareas only */
 input, textarea {
   user-select: auto;
   -webkit-user-select: auto;
   -moz-user-select: auto;
   -ms-user-select: auto;
   pointer-events: auto;
+}
+
+/* Restore pointer events for buttons so they remain clickable */
+button {
+  pointer-events: auto;
+}
+
+/* Restore pointer events for labels (file upload labels need this) */
+label {
+  pointer-events: auto;
+}
+
+/* Prevent screenshot via print media (partial mitigation) */
+@media print {
+  body * {
+    display: none !important;
+  }
+  body::after {
+    display: block !important;
+    content: "DATACRON CLASSIFIED — PRINTING PROHIBITED";
+    color: red;
+    font-size: 48px;
+    text-align: center;
+    padding-top: 40vh;
+  }
+}
+
+/* Anti-screenshot: blur content when window loses focus (JS toggles this class) */
+body.ac-focus-lost .ac-protected-content {
+  filter: blur(12px);
+  transition: filter 0.2s ease;
+  pointer-events: none;
+}
+
+body:not(.ac-focus-lost) .ac-protected-content {
+  filter: none;
+  transition: filter 0.3s ease;
+}
+
+/* Violation warning banner — shown/hidden by JS */
+.ac-violation-banner {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 99999;
+  background: rgba(255, 42, 42, 0.95);
+  color: #fff;
+  text-align: center;
+  padding: 10px 24px;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 12px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  border-bottom: 2px solid #ff0000;
+  backdrop-filter: blur(4px);
+}
+.ac-violation-banner.ac-show {
+  display: block;
+  animation: ac-banner-flash 0.3s ease;
+}
+@keyframes ac-banner-flash {
+  0%   { opacity: 0; transform: translateY(-100%); }
+  100% { opacity: 1; transform: translateY(0); }
 }

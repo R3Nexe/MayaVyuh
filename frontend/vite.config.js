@@ -23,7 +23,7 @@ export default defineConfig({
 
   // Dev server tweaks
   server: {
-    port: 5173,
+    port: 5174,
     open: true,
   },
 })

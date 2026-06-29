@@ -668,6 +668,16 @@ export const AdminDashboard = ({ teams, setTeams, eventState, setEventState }) =
   const timerRef = useRef(null);
   const [loading, setLoading] = useState(false);
 
+  // Anti-cheat violation data fetched from backend
+  const [violations, setViolations] = useState({});
+  const fetchViolations = async () => {
+    try {
+      const res = await fetch(`${API}/api/anticheat/violations`);
+      const data = await res.json();
+      if (data.success) setViolations(data.violations || {});
+    } catch (err) { /* silent */ }
+  };
+
   const fetchSession = async () => {
     try {
       const res = await fetch(`${API}/api/game/status`);
@@ -677,8 +687,10 @@ export const AdminDashboard = ({ teams, setTeams, eventState, setEventState }) =
   };
 
   useEffect(() => {
-    if (isAuthenticated) fetchSession();
-    const interval = setInterval(() => { if (isAuthenticated) fetchSession(); }, 5000);
+    if (isAuthenticated) { fetchSession(); fetchViolations(); }
+    const interval = setInterval(() => {
+      if (isAuthenticated) { fetchSession(); fetchViolations(); }
+    }, 5000);
     return () => clearInterval(interval);
   }, [isAuthenticated]);
 
@@ -869,6 +881,44 @@ export const AdminDashboard = ({ teams, setTeams, eventState, setEventState }) =
                 {teams.length === 0 && <div style={{ color: "#718096", textAlign: "center", padding: 40, letterSpacing: 2, fontSize: 12 }}>ROSTER EMPTY</div>}
               </div>
             </div>
+
+            {/* ── ANTI-CHEAT VIOLATION PANEL ── */}
+            {Object.keys(violations).length > 0 && (
+              <div className="imperial-glass imperial-panel custom-scrollbar" style={{ padding: 32, marginTop: 8 }}>
+                <div style={{ fontSize: 14, letterSpacing: 4, color: "#ff2a2a", marginBottom: 16, borderBottom: "1px dashed rgba(255,42,42,0.3)", paddingBottom: 16, display: "flex", alignItems: "center", gap: 12 }}>
+                  <ShieldAlert size={16} color="#ff2a2a" />
+                  ANTI-CHEAT LOG
+                  <span style={{ fontSize: 10, color: "rgba(255,42,42,0.6)", letterSpacing: 2 }}>— AUTO-REFRESHES EVERY 5s</span>
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 16 }}>
+                  {Object.entries(violations).map(([teamId, data]) => {
+                    const matchedTeam = teams.find(t => t.id === teamId);
+                    const teamName = matchedTeam?.name || `TEAM ${teamId.slice(-6).toUpperCase()}`;
+                    const isHighRisk = data.count >= 5;
+                    return (
+                      <div key={teamId} style={{ padding: 16, background: isHighRisk ? "rgba(255,42,42,0.07)" : "rgba(0,0,0,0.5)", border: isHighRisk ? "1px solid rgba(255,42,42,0.5)" : "1px solid rgba(255,42,42,0.2)", borderLeft: `4px solid ${isHighRisk ? "#ff2a2a" : "rgba(255,42,42,0.4)"}` }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                          <div style={{ fontFamily: "'Cinzel', serif", fontSize: 13, color: isHighRisk ? "#ff2a2a" : "#fff", letterSpacing: 1 }}>{teamName}</div>
+                          <span style={{ fontSize: 20, fontFamily: "'Orbitron', sans-serif", color: isHighRisk ? "#ff2a2a" : "rgba(255,120,120,0.8)", fontWeight: "bold" }}>{data.count}</span>
+                        </div>
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                          {[...new Set(data.events.map(e => e.type))].map(type => (
+                            <span key={type} style={{ fontSize: 9, padding: "2px 8px", background: "rgba(255,42,42,0.1)", border: "1px solid rgba(255,42,42,0.3)", color: "rgba(255,150,150,0.9)", letterSpacing: 1 }}>
+                              {type.replace(/_/g, " ").toUpperCase()}
+                            </span>
+                          ))}
+                        </div>
+                        {data.events.length > 0 && (
+                          <div style={{ fontSize: 9, color: "rgba(255,255,255,0.3)", marginTop: 8, letterSpacing: 1 }}>
+                            LAST: {new Date(data.events[data.events.length - 1].ts).toLocaleTimeString()}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </motion.div>
         );
 
@@ -938,4 +988,3 @@ export const AdminDashboard = ({ teams, setTeams, eventState, setEventState }) =
     </div>
   );
 };
-

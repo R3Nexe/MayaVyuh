@@ -8,6 +8,219 @@ const API = import.meta.env.VITE_API_URL || "https://mayavyuh.onrender.com";
 const INIT_TEAMS = [];
 const INIT_EVENT = { started: false, phase: "lobby" };
 
+// ============================================================
+// ANTI-CHEAT HOOK
+// Runs only on the player view. Silently logs violations and
+// sends them to the backend. Never alerts or disrupts gameplay.
+// ============================================================
+function useAntiCheat({ isPlayer, teamId, onDisqualify }) {
+  const violationCountRef = useRef(0);
+  const geminiWindowRef = useRef(null);
+  const bannerTimerRef = useRef(null);
+
+  // Store a ref to the gemini popup so we can track it
+  // We expose a setter so RoundDisplay can register the popup
+  const registerGeminiWindow = useCallback((win) => {
+    geminiWindowRef.current = win;
+  }, []);
+
+  const showBanner = useCallback((msg) => {
+    const banner = document.getElementById("ac-violation-banner");
+    if (!banner) return;
+    banner.textContent = `⚠ SECURITY ALERT: ${msg}`;
+    banner.classList.add("ac-show");
+    clearTimeout(bannerTimerRef.current);
+    bannerTimerRef.current = setTimeout(() => {
+      banner.classList.remove("ac-show");
+    }, 3000);
+  }, []);
+
+  const reportViolation = useCallback((type) => {
+    if (!isPlayer) return;
+    violationCountRef.current += 1;
+    const count = violationCountRef.current;
+
+    // Silent report to backend — fire and forget
+    fetch(`${API}/api/anticheat/report`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ teamId, type, count, ts: Date.now() }),
+    }).catch(() => {}); // intentionally swallow errors — never disrupt gameplay
+
+    // Trigger instant disqualification for critical offenses
+    if (type === "tab_switch" || type === "copy_attempt" || type === "screenshot_attempt") {
+      if (onDisqualify) onDisqualify(type);
+      return; // Stop here, no need to show a banner if they are disqualified
+    }
+
+    showBanner(
+      type === "devtools"
+        ? "DEVTOOLS DETECTED"
+        : "UNAUTHORIZED ACTION"
+    );
+  }, [isPlayer, teamId, showBanner, onDisqualify]);
+
+  useEffect(() => {
+    if (!isPlayer) return;
+
+    // ----------------------------------------------------------
+    // 1. Tab / window visibility — detect switching away
+    // ----------------------------------------------------------
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        // Only flag if NOT the Gemini popup being interacted with
+        // (We can't know for sure, so we log it but don't block)
+        reportViolation("tab_switch");
+        document.body.classList.add("ac-focus-lost");
+      } else {
+        document.body.classList.remove("ac-focus-lost");
+      }
+    };
+
+    // ----------------------------------------------------------
+    // 2. Window blur — fires when focus moves to another window/tab
+    //    We allow blur to Gemini popup by checking if our own
+    //    popup is what caused it (best-effort).
+    // ----------------------------------------------------------
+    const handleWindowBlur = () => {
+      // Short delay so the popup's focus can register first
+      setTimeout(() => {
+        const geminiWin = geminiWindowRef.current;
+        const geminiAlive = geminiWin && !geminiWin.closed;
+        // If Gemini popup is open and was just opened, don't flag
+        if (!geminiAlive) {
+          document.body.classList.add("ac-focus-lost");
+        }
+      }, 200);
+    };
+
+    const handleWindowFocus = () => {
+      document.body.classList.remove("ac-focus-lost");
+    };
+
+    // ----------------------------------------------------------
+    // 3. Keyboard shortcut interception
+    //    Ctrl+C / Cmd+C: silently swallowed — no alert, no error
+    //    Screenshot keys (PrintScreen): silently swallowed
+    //    Ctrl+S, Ctrl+U, Ctrl+P, F12, Ctrl+Shift+I: blocked silently
+    // ----------------------------------------------------------
+    const handleKeyDown = (e) => {
+      const ctrl = e.ctrlKey || e.metaKey;
+
+      // Ctrl+C — intercept silently (player sees nothing wrong)
+      if (ctrl && e.key === "c") {
+        // Clear the clipboard silently so they can't paste the image
+        try {
+          navigator.clipboard.writeText("").catch(() => {});
+        } catch (_) {}
+        reportViolation("copy_attempt");
+        // DO NOT call e.preventDefault() — requirement says it shouldn't fail
+        // Just poison the clipboard content instead
+        return;
+      }
+
+      // PrintScreen
+      if (e.key === "PrintScreen") {
+        // Poison clipboard after screenshot key
+        try {
+          navigator.clipboard.writeText("").catch(() => {});
+        } catch (_) {}
+        reportViolation("screenshot_attempt");
+        e.preventDefault();
+        return;
+      }
+
+      // Block devtools shortcuts silently
+      if (
+        e.key === "F12" ||
+        (ctrl && e.shiftKey && (e.key === "I" || e.key === "J" || e.key === "C")) ||
+        (ctrl && e.key === "U") ||
+        (ctrl && e.key === "s") ||
+        (ctrl && e.key === "p")
+      ) {
+        e.preventDefault();
+        reportViolation("devtools");
+        return;
+      }
+    };
+
+    // ----------------------------------------------------------
+    // 4. Context menu (right-click) — disable silently on images
+    // ----------------------------------------------------------
+    const handleContextMenu = (e) => {
+      if (e.target.tagName === "IMG") {
+        e.preventDefault();
+      }
+    };
+
+    // ----------------------------------------------------------
+    // 5. Drag prevention on images
+    // ----------------------------------------------------------
+    const handleDragStart = (e) => {
+      if (e.target.tagName === "IMG") {
+        e.preventDefault();
+        reportViolation("drag_attempt");
+      }
+    };
+
+    // ----------------------------------------------------------
+    // 6. Paste interception — block pasting images into the page
+    // ----------------------------------------------------------
+    const handlePaste = (e) => {
+      const items = e.clipboardData?.items || [];
+      for (const item of items) {
+        if (item.type.startsWith("image/")) {
+          e.preventDefault();
+          reportViolation("paste_image_attempt");
+          return;
+        }
+      }
+      // Text paste is allowed (needed for Gemini link input)
+    };
+
+    // ----------------------------------------------------------
+    // 7. DevTools size detection (heuristic — best effort)
+    // ----------------------------------------------------------
+    let devToolsCheckInterval = null;
+    const checkDevTools = () => {
+      const threshold = 160;
+      if (
+        window.outerWidth - window.innerWidth > threshold ||
+        window.outerHeight - window.innerHeight > threshold
+      ) {
+        reportViolation("devtools");
+      }
+    };
+    devToolsCheckInterval = setInterval(checkDevTools, 3000);
+
+    // Attach all listeners
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    document.addEventListener("contextmenu", handleContextMenu);
+    document.addEventListener("dragstart", handleDragStart);
+    document.addEventListener("paste", handlePaste);
+    window.addEventListener("blur", handleWindowBlur);
+    window.addEventListener("focus", handleWindowFocus);
+    window.addEventListener("keydown", handleKeyDown, true); // capture phase
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      document.removeEventListener("contextmenu", handleContextMenu);
+      document.removeEventListener("dragstart", handleDragStart);
+      document.removeEventListener("paste", handlePaste);
+      window.removeEventListener("blur", handleWindowBlur);
+      window.removeEventListener("focus", handleWindowFocus);
+      window.removeEventListener("keydown", handleKeyDown, true);
+      clearInterval(devToolsCheckInterval);
+      clearTimeout(bannerTimerRef.current);
+      document.body.classList.remove("ac-focus-lost");
+    };
+  }, [isPlayer, reportViolation]);
+
+  return { registerGeminiWindow };
+}
+
+// ============================================================
+
 function usePersistentState(key, initialValue) {
   const [value, setValue] = useState(() => {
     try {
@@ -25,6 +238,65 @@ function usePersistentState(key, initialValue) {
   return [value, setValue];
 }
 
+const DisqualifiedScreen = ({ teamName, reason }) => {
+  const displayReason = 
+    reason === "tab_switch" ? "TAB SWITCH DETECTED" :
+    reason === "copy_attempt" ? "CLIPBOARD INTERCEPTED" :
+    reason === "screenshot_attempt" ? "SCREENSHOT ATTEMPT DETECTED" :
+    "UNAUTHORIZED ACTION";
+
+  return (
+    <motion.div 
+      initial={{ opacity: 0 }} 
+      animate={{ opacity: 1 }} 
+      transition={{ duration: 3, ease: "easeInOut" }}
+      style={{
+        position: "fixed",
+        inset: 0,
+        backgroundColor: "#000",
+        color: "#fff",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        zIndex: 99999,
+        fontFamily: "'Cinzel', serif",
+        textAlign: "center"
+      }}
+    >
+      <motion.div
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ duration: 4, delay: 1, ease: "easeOut" }}
+        style={{
+          fontSize: "4rem",
+          letterSpacing: "8px",
+          color: "#8a0303",
+          textShadow: "0 0 20px rgba(255, 0, 0, 0.4), 0 0 40px rgba(255, 0, 0, 0.2)",
+          marginBottom: "40px",
+          textTransform: "uppercase"
+        }}
+      >
+        TEAM {teamName}<br/>YOU ARE DISQUALIFIED
+      </motion.div>
+      
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 2, delay: 3 }}
+        style={{
+          fontFamily: "'Share Tech Mono', monospace",
+          fontSize: "1.2rem",
+          color: "rgba(255, 255, 255, 0.5)",
+          letterSpacing: "4px"
+        }}
+      >
+        Reason: {displayReason}
+      </motion.div>
+    </motion.div>
+  );
+};
+
 const RegistrationScreen = ({ onRegister }) => {
   const [teamName, setTeamName] = useState("");
   const [p1, setP1] = useState("");
@@ -40,7 +312,7 @@ const RegistrationScreen = ({ onRegister }) => {
       const res = await fetch(`${API}/api/game/teams/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ teamName, player1: p1, player2: p2, role: "observer" }) // Use a default role or adjust as needed
+        body: JSON.stringify({ teamName, player1: p1, player2: p2, role: "observer" })
       });
       const data = await res.json();
       
@@ -154,7 +426,8 @@ const IntervalScreen = ({ title, message, timeLeft }) => (
   </div>
 );
 
-const RoundDisplay = ({ playerLabel, targetImage, onComplete, roundLabel, storageKey, isPaused, timeLeft, isRoundEnded, teamId }) => {
+// RoundDisplay now accepts registerGeminiWindow to let anti-cheat track the popup
+const RoundDisplay = ({ playerLabel, targetImage, onComplete, roundLabel, storageKey, isPaused, timeLeft, isRoundEnded, teamId, registerGeminiWindow }) => {
   const [uploading, setUploading] = useState(false);
   const [uploadedImgUrl, setUploadedImgUrl] = useState(null);
   const [isGeminiLaunched, setIsGeminiLaunched] = useState(false);
@@ -169,8 +442,11 @@ const RoundDisplay = ({ playerLabel, targetImage, onComplete, roundLabel, storag
     const half = Math.floor(sw / 2);
 
     // Open Gemini on the right half
-    window.open('https://gemini.google.com', 'GeminiPopup', `width=${half},height=${sh},left=${half},top=0`);
+    const geminiWin = window.open('https://gemini.google.com', 'GeminiPopup', `width=${half},height=${sh},left=${half},top=0`);
     
+    // Register the popup with anti-cheat so blur events aren't flagged
+    if (registerGeminiWindow) registerGeminiWindow(geminiWin);
+
     // Attempt to resize current window to the left half
     try {
       window.moveTo(0, 0);
@@ -231,7 +507,7 @@ const RoundDisplay = ({ playerLabel, targetImage, onComplete, roundLabel, storag
 
   if (isGeminiLaunched) {
     return (
-      <motion.div layout initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', width: "50vw", padding: "32px 40px", boxSizing: "border-box", position: "relative", zIndex: 1 }}>
+      <motion.div layout initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="ac-protected-content" style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', width: "50vw", padding: "32px 40px", boxSizing: "border-box", position: "relative", zIndex: 1 }}>
         
         {/* Header Row */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 32 }}>
@@ -249,6 +525,7 @@ const RoundDisplay = ({ playerLabel, targetImage, onComplete, roundLabel, storag
            
            {targetImage ? (
               <motion.div layout style={{ width: "100%", flex: 1, minHeight: 300, display: "flex", justifyContent: "center", alignItems: "center", background: "rgba(0,0,0,0.3)", borderRadius: 8, padding: 16, border: "1px solid rgba(255,255,255,0.1)", marginBottom: 24 }}>
+                {/* ac-protected-content blurs this on focus loss */}
                 <motion.img layoutId="target-image" src={targetImage} alt="target" style={{ maxWidth: "100%", maxHeight: "50vh", objectFit: "contain", borderRadius: 4, boxShadow: "0 0 20px rgba(0,0,0,0.5)" }} />
               </motion.div>
            ) : (
@@ -310,7 +587,8 @@ const RoundDisplay = ({ playerLabel, targetImage, onComplete, roundLabel, storag
 
         <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
           <div style={{ color: "var(--text-dim)", marginBottom: 8, fontSize: 14 }}>TARGET DATACRON:</div>
-          <motion.div layout className="glass-panel" style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: 0, maxHeight: 400, overflow: "hidden" }}>
+          {/* ac-protected-content: blurs on focus loss */}
+          <motion.div layout className="glass-panel ac-protected-content" style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: 0, maxHeight: 400, overflow: "hidden" }}>
             {targetImage ? <motion.img layoutId="target-image" src={targetImage} alt="target" style={{ width: "100%", height: "100%", objectFit: "contain" }} /> : <div style={{ color: "var(--text-dim)", fontFamily: "'Orbitron'" }}>NO TARGET</div>}
           </motion.div>
         </div>
@@ -434,7 +712,8 @@ const PlayerSection = ({ globalTeams, setGlobalTeams, eventState }) => {
     if (myTeam) localStorage.setItem("maya_my_team", JSON.stringify(myTeam));
   }, [myTeam]);
 
-  const [phase, setPhase] = usePersistentState("maya_phase", "register"); // register, lobby, r1, interval1, r2, wait_for_r3, r3, select, judgment, leaderboard
+  const [disqualifiedReason, setDisqualifiedReason] = usePersistentState("maya_disqualified", null);
+  const [phase, setPhase] = usePersistentState("maya_phase", "register");
   const [targetImage, setTargetImage] = usePersistentState("maya_targetImage", null);
   const [r1Img, setR1Img] = usePersistentState("maya_r1Img", null);
   const [r2Img, setR2Img] = usePersistentState("maya_r2Img", null);
@@ -443,6 +722,24 @@ const PlayerSection = ({ globalTeams, setGlobalTeams, eventState }) => {
   const [score, setScore] = usePersistentState("maya_score", null);
 
   const [session, setSession] = useState(null);
+
+  const handleDisqualify = useCallback((reason) => {
+    if (!myTeam) return;
+    setDisqualifiedReason(reason);
+    
+    // Broadcast ban to admin instantly
+    setGlobalTeams(prev => prev.map(t => t.id === myTeam.id ? { ...t, status: "banned" } : t));
+    
+    // Try to update backend if endpoint exists (fire and forget)
+    fetch(`${API}/api/game/teams/${myTeam.id}/ban`, { method: "POST" }).catch(() => {});
+  }, [myTeam, setDisqualifiedReason, setGlobalTeams]);
+
+  // Anti-cheat hook — active only for player view
+  const { registerGeminiWindow } = useAntiCheat({
+    isPlayer: true,
+    teamId: myTeam?.id || null,
+    onDisqualify: handleDisqualify
+  });
   
   useEffect(() => {
     if (!myTeam) return;
@@ -457,6 +754,7 @@ const PlayerSection = ({ globalTeams, setGlobalTeams, eventState }) => {
     const interval = setInterval(fetchSession, 3000);
     return () => clearInterval(interval);
   }, [myTeam]);
+
   useEffect(() => {
     if (!session || !myTeam) return;
     const s = session.status;
@@ -495,11 +793,13 @@ const PlayerSection = ({ globalTeams, setGlobalTeams, eventState }) => {
     const timer = setInterval(tick, 1000);
     return () => clearInterval(timer);
   }, [session?.roundEndTime, session?.isPaused, session?.timeRemainingAtPause]);
+
   useEffect(() => {
     if (myTeam && phase === "register") {
       setPhase("lobby");
     }
   }, [myTeam, phase, setPhase]);
+
   useEventListener((eventType) => {
     if (eventType === "GLOBAL_RESET") {
       localStorage.removeItem("maya_my_team");
@@ -521,6 +821,7 @@ const PlayerSection = ({ globalTeams, setGlobalTeams, eventState }) => {
     setR3Img(null);
     setFinalImg(null);
     setScore(null);
+    setDisqualifiedReason(null);
     
     setMyTeam(t);
     setGlobalTeams(prev => [...prev, t]);
@@ -532,6 +833,10 @@ const PlayerSection = ({ globalTeams, setGlobalTeams, eventState }) => {
   };
 
   if (!myTeam) return <RegistrationScreen onRegister={handleRegister} />;
+  
+  if (disqualifiedReason) {
+    return <DisqualifiedScreen teamName={myTeam.name} reason={disqualifiedReason} />;
+  }
   
   const currentTeamState = globalTeams.find(t => t.id === myTeam?.id);
   if (currentTeamState?.status === "banned") {
@@ -547,12 +852,15 @@ const PlayerSection = ({ globalTeams, setGlobalTeams, eventState }) => {
   const isPaused = session?.isPaused || false;
   const status = session?.status || 'waiting';
 
+  // Common props passed to all RoundDisplay instances
+  const roundProps = { teamId: myTeam.id, isPaused, timeLeft, registerGeminiWindow };
+
   if (phase === "lobby") return <LobbyScreen />;
-  if (phase === "r1") return <RoundDisplay teamId={myTeam.id} storageKey="r1" playerLabel={`PLAYER 1 (${myTeam.player1})`} targetImage={targetImage} roundLabel="ROUND 1: INITIAL CREATION" onComplete={(img, link) => { setR1Img(img); updateTeamStatus({ round: 1, r1Link: link }); setPhase("interval1"); }} isPaused={isPaused} timeLeft={timeLeft} isRoundEnded={status === 'round1_ended'} />;
+  if (phase === "r1") return <RoundDisplay {...roundProps} storageKey="r1" playerLabel={`PLAYER 1 (${myTeam.player1})`} targetImage={targetImage} roundLabel="ROUND 1: INITIAL CREATION" onComplete={(img, link) => { setR1Img(img); updateTeamStatus({ round: 1, r1Link: link }); setPhase("interval1"); }} isRoundEnded={status === 'round1_ended'} />;
   if (phase === "interval1") return <IntervalScreen title="VERBAL TRANSFER" message={`PLAYER 1 (${myTeam.player1}), describe the target image to PLAYER 2 (${myTeam.player2}) verbally. Do not show them the screen!`} timeLeft={timeLeft} />;
-  if (phase === "r2") return <RoundDisplay teamId={myTeam.id} storageKey="r2" playerLabel={`PLAYER 2 (${myTeam.player2})`} targetImage={r1Img} roundLabel="ROUND 2: BLIND RECREATION" onComplete={(img, link) => { setR2Img(img); updateTeamStatus({ round: 2, r2Link: link }); setPhase("wait_for_r3"); }} isPaused={isPaused} timeLeft={timeLeft} isRoundEnded={status === 'round2_ended'} />;
+  if (phase === "r2") return <RoundDisplay {...roundProps} storageKey="r2" playerLabel={`PLAYER 2 (${myTeam.player2})`} targetImage={r1Img} roundLabel="ROUND 2: BLIND RECREATION" onComplete={(img, link) => { setR2Img(img); updateTeamStatus({ round: 2, r2Link: link }); setPhase("wait_for_r3"); }} isRoundEnded={status === 'round2_ended'} />;
   if (phase === "wait_for_r3") return <IntervalScreen title="HOLD POSITION" message="AWAITING ADMIN PROTOCOL FOR ROUND 3" timeLeft={timeLeft} />;
-  if (phase === "r3") return <RoundDisplay teamId={myTeam.id} storageKey="r3" playerLabel={`PLAYER 1 (${myTeam.player1})`} targetImage={r2Img} roundLabel="ROUND 3: REFINEMENT" onComplete={(img, link) => { setR3Img(img); updateTeamStatus({ r3Link: link }); setPhase("select"); }} isPaused={isPaused} timeLeft={timeLeft} isRoundEnded={status === 'round3_ended'} />;
+  if (phase === "r3") return <RoundDisplay {...roundProps} storageKey="r3" playerLabel={`PLAYER 1 (${myTeam.player1})`} targetImage={r2Img} roundLabel="ROUND 3: REFINEMENT" onComplete={(img, link) => { setR3Img(img); updateTeamStatus({ r3Link: link }); setPhase("select"); }} isRoundEnded={status === 'round3_ended'} />;
   if (phase === "select") return <SelectionScreen imgR2={r2Img} imgR3={r3Img} onSelect={async (img) => { 
     setFinalImg(img); 
     setPhase("judgment"); 
@@ -588,6 +896,8 @@ export default function App() {
   return (
     <>
       <GlobalStyles/>
+      {/* Anti-cheat violation banner — rendered once at root, shown by JS */}
+      <div id="ac-violation-banner" className="ac-violation-banner" aria-hidden="true" />
       <SceneWrapper>
         {view==="admin"   && <AdminDashboard teams={teams} setTeams={setTeams} eventState={eventState} setEventState={setEventState} />}
         {view==="player"  && <PlayerSection globalTeams={teams} setGlobalTeams={setTeams} eventState={eventState} />}
