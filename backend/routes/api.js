@@ -61,7 +61,7 @@ router.get('/anticheat/violations', (req, res) => {
 // ============================================================
 
 // Register a Team
-router.post('/teams/register', async (req, res) => {
+router.post('/game/teams/register', async (req, res) => {
   try {
     if (mongoose.connection.readyState !== 1) {
       return res.status(500).json({ error: "Database not connected. Please ensure MONGO_URI is set on the server and IPs are whitelisted." });

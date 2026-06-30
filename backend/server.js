@@ -171,7 +171,7 @@ app.post('/api/player/upload-submission', upload.single('image'), async (req, re
 });
 
 const apiRoutes = require('./routes/api');
-app.use('/api/game', apiRoutes);
+app.use('/api', apiRoutes);
 
 const usedGeminiLinks = new Set();
 
