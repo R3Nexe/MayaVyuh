@@ -51,9 +51,9 @@ export const GlobalStyles = () => (
 
     /* Immersive animated background */
     .immersive-bg { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
-    .bg-layer { position: absolute; inset: -5%; background-size: cover; background-position: center; opacity: 0; transition: opacity 3s ease-in-out; filter: brightness(0.3) contrast(1.3) sepia(0.5) hue-rotate(-20deg); }
+    .bg-layer { position: absolute; inset: -5%; background-size: cover; background-position: center; opacity: 0; transition: opacity 3s ease-in-out; filter: brightness(0.55) contrast(1.2) sepia(0.3) hue-rotate(-10deg); }
     .bg-layer.active { opacity: 1; }
-    .bg-overlay { position: absolute; inset: 0; background: radial-gradient(circle at center, transparent 0%, #05050A 100%), linear-gradient(180deg, rgba(5,5,10,0.8) 0%, rgba(5,5,10,0.4) 50%, #05050A 100%); backdrop-filter: blur(8px); }
+    .bg-overlay { position: absolute; inset: 0; background: radial-gradient(circle at center, transparent 0%, rgba(5,5,10,0.8) 100%), linear-gradient(180deg, rgba(5,5,10,0.5) 0%, rgba(5,5,10,0.2) 50%, rgba(5,5,10,0.85) 100%); backdrop-filter: blur(5px); }
 
     /* Advanced Glassmorphism */
     .glass-panel {

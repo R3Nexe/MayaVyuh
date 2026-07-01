@@ -912,8 +912,8 @@ const IntervalScreen = ({ title, message, timeLeft, isPaused, localDurationKey, 
     if (!localDurationKey) return 0;
     const startTime = localStorage.getItem(`maya_timer_${localDurationKey}`);
     if (startTime) {
-       const elapsed = Math.floor((Date.now() - parseInt(startTime)) / 1000);
-       return Math.max(0, localDuration - elapsed);
+      const elapsed = Math.floor((Date.now() - parseInt(startTime)) / 1000);
+      return Math.max(0, localDuration - elapsed);
     }
     localStorage.setItem(`maya_timer_${localDurationKey}`, Date.now().toString());
     return localDuration;
@@ -921,7 +921,7 @@ const IntervalScreen = ({ title, message, timeLeft, isPaused, localDurationKey, 
 
   useEffect(() => {
     if (!localDurationKey) return;
-    
+
     let startTime = localStorage.getItem(`maya_timer_${localDurationKey}`);
     if (!startTime) {
       startTime = Date.now().toString();
@@ -933,11 +933,11 @@ const IntervalScreen = ({ title, message, timeLeft, isPaused, localDurationKey, 
     }
 
     const interval = setInterval(() => {
-       const st = localStorage.getItem(`maya_timer_${localDurationKey}`);
-       if (st) {
-         const elapsed = Math.floor((Date.now() - parseInt(st)) / 1000);
-         setLocalTimeLeft(Math.max(0, localDuration - elapsed));
-       }
+      const st = localStorage.getItem(`maya_timer_${localDurationKey}`);
+      if (st) {
+        const elapsed = Math.floor((Date.now() - parseInt(st)) / 1000);
+        setLocalTimeLeft(Math.max(0, localDuration - elapsed));
+      }
     }, 1000);
     return () => clearInterval(interval);
   }, [localDurationKey, localDuration]);
@@ -1101,7 +1101,11 @@ const RoundDisplay = ({ playerLabel, targetImage, onComplete, roundLabel, storag
               </div>
               <div style={{ display: "flex", gap: 16 }}>
                 <button className="btn-imperial-danger" style={{ flex: 1, padding: 16 }} onClick={() => setUploadedImgUrl(null)}>RETRY</button>
-                <button className="btn-imperial" style={{ flex: 2, padding: 16, borderColor: (!effectivelyEnded ? "var(--text-dim)" : "var(--neon-green)"), color: (!effectivelyEnded ? "var(--text-dim)" : "var(--neon-green)"), opacity: (verifying || !effectivelyEnded) ? 0.5 : 1, cursor: !effectivelyEnded ? "not-allowed" : "pointer" }} onClick={effectivelyEnded ? handleSubmit : undefined} disabled={verifying || !effectivelyEnded}>{verifying ? "VERIFYING..." : (!effectivelyEnded ? "AWAITING ROUND END..." : "SUBMIT TO DATACRON ➔")}</button>
+                {/* 
+                  // Original feature: submission not allowed till timer ends
+                  <button className="btn-imperial" style={{ flex: 2, padding: 16, borderColor: (!effectivelyEnded ? "var(--text-dim)" : "var(--neon-green)"), color: (!effectivelyEnded ? "var(--text-dim)" : "var(--neon-green)"), opacity: (verifying || !effectivelyEnded) ? 0.5 : 1, cursor: !effectivelyEnded ? "not-allowed" : "pointer" }} onClick={effectivelyEnded ? handleSubmit : undefined} disabled={verifying || !effectivelyEnded}>{verifying ? "VERIFYING..." : (!effectivelyEnded ? "AWAITING ROUND END..." : "SUBMIT TO DATACRON ➔")}</button>
+                */}
+                <button className="btn-imperial" style={{ flex: 2, padding: 16, borderColor: "var(--neon-green)", color: "var(--neon-green)", opacity: verifying ? 0.5 : 1, cursor: "pointer" }} onClick={handleSubmit} disabled={verifying}>{verifying ? "VERIFYING..." : "SUBMIT TO DATACRON ➔"}</button>
               </div>
             </motion.div>
           )}
@@ -1239,7 +1243,23 @@ const PlayerSection = ({ globalTeams, setGlobalTeams }) => {
   const finalImg = currentTeamState.finalImage || null;
   const score = currentTeamState.score || null;
 
-  const [targetImage, setTargetImage] = useState(null);
+  const [targetImage, setTargetImage] = useState(() => {
+    try { return localStorage.getItem("maya_targetImage") || null; } catch { return null; }
+  });
+
+  useEffect(() => {
+    if (targetImage) localStorage.setItem("maya_targetImage", targetImage);
+  }, [targetImage]);
+
+  // ALWAYS restore the targetImage if it's somehow missing, regardless of the round phase!
+  useEffect(() => {
+    if (myTeam?.id && !targetImage) {
+      fetch(`${API}/api/target-image?teamId=${myTeam.id}`)
+        .then(r => r.json())
+        .then(d => { if (d.url) setTargetImage(d.url); })
+        .catch(console.error);
+    }
+  }, [myTeam?.id, targetImage]);
 
   const updateTeamStatus = async (updates) => {
     setLocalTeamState(prev => ({ ...prev, ...updates }));
@@ -1250,7 +1270,7 @@ const PlayerSection = ({ globalTeams, setGlobalTeams }) => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updates)
       });
-    } catch (e) {}
+    } catch (e) { }
   };
 
   const setPhase = (p) => updateTeamStatus({ phase: p });
@@ -1324,7 +1344,7 @@ const PlayerSection = ({ globalTeams, setGlobalTeams }) => {
   }, [session?.status, myTeam, phase, setPhase, setTargetImage, timeLeft]);
 
   useEffect(() => {
-    if (!session?.roundEndTime) { 
+    if (!session?.roundEndTime) {
       const timer = setTimeout(() => setTimeLeft(0), 0);
       return () => clearTimeout(timer);
     }
@@ -1449,7 +1469,7 @@ export default function App() {
   useEffect(() => { const h = () => setView(getView()); window.addEventListener("hashchange", h); return () => window.removeEventListener("hashchange", h); }, []);
 
   const [teams, setTeams] = useState([]);
-  
+
   useEffect(() => {
     const fetchTeams = async () => {
       try {
@@ -1467,9 +1487,9 @@ export default function App() {
                 window.location.reload();
               }
             }
-          } catch (err) {}
+          } catch (err) { }
         }
-      } catch (e) {}
+      } catch (e) { }
     };
     fetchTeams();
     const interval = setInterval(fetchTeams, 3000);
