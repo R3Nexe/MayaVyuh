@@ -636,12 +636,13 @@ export const AdminDashboard = ({ teams, setTeams, eventState, setEventState }) =
     const team = teams.find(t => t.id === id);
     if (!team) return;
     const newStatus = team.status === "banned" ? "active" : "banned";
+    const newReason = newStatus === "banned" ? "manual_ban" : null;
     setTeams(prev => prev.map(t => t.id === id ? { ...t, status: newStatus } : t));
     try {
       await fetch(`${API}/api/game/teams/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: newStatus, disqualifiedReason: reason })
+        body: JSON.stringify({ status: newStatus, disqualifiedReason: newReason })
       });
     } catch(e) { console.error(e); }
   };
@@ -740,12 +741,18 @@ export const AdminDashboard = ({ teams, setTeams, eventState, setEventState }) =
                       <div style={{ marginTop: 32, padding: "8px 24px", border: "1px solid rgba(212,175,55,0.2)", color: "rgba(212,175,55,0.8)", fontSize: 12, letterSpacing: 4, background: "rgba(0,0,0,0.5)" }}>
                         {status.toUpperCase().replace('_', ' ')}
                       </div>
+                      <div style={{ marginTop: 16, fontSize: 12, color: "var(--neon-cyan)", letterSpacing: 2 }}>
+                        {teams.length} ACTIVE TEAM(S)
+                      </div>
                     </>
                   ) : (
                     <>
                       <ShieldAlert size={64} color="rgba(212,175,55,0.3)" style={{ marginBottom: 32 }} />
                       <div style={{ fontFamily: "'Cinzel', serif", fontSize: 24, letterSpacing: 8, color: "rgba(212,175,55,0.5)" }}>AWAITING PROTOCOL</div>
                       <div style={{ fontSize: 12, letterSpacing: 4, color: "#718096", marginTop: 16 }}>SYSTEM IN STASIS</div>
+                      <div style={{ marginTop: 24, fontSize: 14, color: "var(--neon-cyan)", letterSpacing: 2 }}>
+                        {teams.length} TEAM(S) REGISTERED
+                      </div>
                     </>
                   )}
                 </div>

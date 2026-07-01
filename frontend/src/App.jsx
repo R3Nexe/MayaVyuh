@@ -14,7 +14,7 @@ const INIT_EVENT = { started: false, phase: "lobby" };
 // Runs only on the player view. Silently logs violations and
 // sends them to the backend. Never alerts or disrupts gameplay.
 // ============================================================
-function useAntiCheat({ isPlayer, teamId, onDisqualify, isPaused, forceCloseWindow }) {
+function useAntiCheat({ isPlayer, teamId, onDisqualify, isPaused, forceCloseWindow, isActiveRound }) {
   const violationCountRef = useRef(0);
   const geminiWindowRef = useRef(null);
   const bannerTimerRef = useRef(null);
@@ -67,9 +67,11 @@ function useAntiCheat({ isPlayer, teamId, onDisqualify, isPaused, forceCloseWind
     }).catch(() => { }); // intentionally swallow errors — never disrupt gameplay
 
     // Trigger instant disqualification for critical offenses
-    if (type === "tab_switch" || type === "copy_attempt" || type === "screenshot_attempt") {
-      if (onDisqualify) onDisqualify(type);
-      return; // Stop here, no need to show a banner if they are disqualified
+    if (type === "copy_attempt" || type === "screenshot_attempt") {
+      if (isActiveRound && onDisqualify) {
+        onDisqualify(type);
+      }
+      return; // Stop here, no need to show a banner if they are disqualified or if we ignore it
     }
 
     showBanner(
@@ -77,7 +79,7 @@ function useAntiCheat({ isPlayer, teamId, onDisqualify, isPaused, forceCloseWind
         ? "DEVTOOLS DETECTED"
         : "UNAUTHORIZED ACTION"
     );
-  }, [isPlayer, teamId, showBanner, onDisqualify]);
+  }, [isPlayer, teamId, showBanner, onDisqualify, isActiveRound]);
 
   useEffect(() => {
     if (!isPlayer) return;
@@ -1275,6 +1277,7 @@ const PlayerSection = ({ globalTeams, setGlobalTeams }) => {
 
   const isPaused = session?.isPaused || false;
   const forceCloseWindow = isPaused || (timeLeft <= 0 && session?.status?.includes('_active'));
+  const isActiveRound = session?.status?.includes('_active') || false;
 
   // Anti-cheat hook — active only for player view
   const { registerGeminiWindow } = useAntiCheat({
@@ -1282,7 +1285,8 @@ const PlayerSection = ({ globalTeams, setGlobalTeams }) => {
     teamId: myTeam?.id || null,
     onDisqualify: handleDisqualify,
     isPaused,
-    forceCloseWindow
+    forceCloseWindow,
+    isActiveRound
   });
 
   useEffect(() => {
