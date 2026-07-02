@@ -165,6 +165,13 @@ app.post('/api/player/upload-submission', upload.single('image'), async (req, re
       { upsert: true, new: true, setDefaultsOnInsert: true }
     );
 
+    try {
+      const imgField = round == 1 ? 'r1Img' : (round == 2 ? 'r2Img' : (round == 3 ? 'r3Img' : 'finalImage'));
+      await Team.findByIdAndUpdate(teamId, { [imgField]: fullUrl, finalImage: fullUrl });
+    } catch (e) {
+      console.error("Failed to update team image field:", e);
+    }
+
     res.json({ success: true, url: fullUrl });
 
   } catch (err) {
@@ -277,51 +284,159 @@ app.delete('/api/admin/images/:id', async (req, res) => {
   }
 });
 
+// Simple Semaphore to limit concurrent Python spawns so 100+ players don't crash OS memory
+const MAX_CONCURRENT_PYTHON = 3;
+let currentPythonWorkers = 0;
+const pythonQueue = [];
+
+const acquirePythonLock = () => new Promise(resolve => {
+  if (currentPythonWorkers < MAX_CONCURRENT_PYTHON) {
+    currentPythonWorkers++;
+    resolve();
+  } else {
+    pythonQueue.push(resolve);
+  }
+});
+
+const releasePythonLock = () => {
+  if (pythonQueue.length > 0) {
+    const next = pythonQueue.shift();
+    next();
+  } else {
+    currentPythonWorkers--;
+  }
+};
+
 app.post('/api/similarity', async (req, res) => {
   try {
     const { teamId, original_url, submitted_url } = req.body;
+    if (!original_url || !submitted_url) {
+      return res.status(400).json({ error: "original_url and submitted_url are required" });
+    }
+
+    if (process.env.AI_SERVICE_URL) {
+      try {
+        const response = await fetch(`${process.env.AI_SERVICE_URL}/api/similarity`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ teamId, original_url, submitted_url })
+        });
+        if (response.ok) {
+          const data = await response.json();
+          if (data && data.similarity_score !== undefined) {
+            if (teamId && Team && Team.findByIdAndUpdate) {
+              try {
+                await Team.findByIdAndUpdate(teamId, { 
+                    score: data.similarity_score, 
+                    finalImageUrl: submitted_url,
+                    referenceImageUrl: original_url
+                });
+              } catch (dbErr) { console.log("DB update ignored:", dbErr.message); }
+              try {
+                const Submission = require('../models/Submission');
+                await Submission.findOneAndUpdate(
+                    { team: teamId, round: 3 },
+                    { similarityScore: data.similarity_score },
+                    { sort: { timestamp: -1 } }
+                );
+              } catch (err) {}
+            }
+            return res.json(data);
+          }
+        }
+      } catch (e) {
+        console.error("AI_SERVICE_URL call failed, falling back to local Python execution:", e.message);
+      }
+    }
+
     const { execFile } = require('child_process');
     const path = require('path');
-    
     const scriptPath = path.join(__dirname, '../maya-ai-service/runner.py');
-    
-    execFile('python', [scriptPath, original_url, submitted_url], async (error, stdout, stderr) => {
-      if (error) {
-         console.error("AI Model error:", error, stderr);
-         return res.status(500).json({ error: "Scoring failed" });
-      }
-      try {
-        const jsonMatch = stdout.match(/\{[\s\S]*\}/);
-        if (!jsonMatch) throw new Error("No JSON found in Python output");
-        const data = JSON.parse(jsonMatch[0]);
-        
-        if (data.error) {
-           return res.status(500).json({ error: data.error });
-        }
-        
-        const score = data.similarity_score;
-        
-        if (teamId) {
-            await Team.findByIdAndUpdate(teamId, { 
-                score: score, 
-                finalImageUrl: submitted_url,
-                referenceImageUrl: original_url
-            });
-            
-            const Submission = require('../models/Submission');
-            await Submission.findOneAndUpdate(
-                { team: teamId, round: 3 },
-                { similarityScore: score },
-                { sort: { timestamp: -1 } }
-            );
-        }
-        
-        res.json(data);
+
+    const pythonCommands = process.env.PYTHON_PATH ? [process.env.PYTHON_PATH] : (process.platform === 'win32' ? ['py', 'python', 'python3'] : ['python3', 'python']);
+
+    await acquirePythonLock();
+    try {
+      let executed = false;
+      for (const cmd of pythonCommands) {
+        try {
+          await new Promise((resolve, reject) => {
+            execFile(cmd, [scriptPath, original_url, submitted_url], { maxBuffer: 1024 * 1024 * 50, timeout: 120000 }, async (error, stdout, stderr) => {
+            if (error && error.code === 'ENOENT') {
+              return reject(error);
+            }
+            executed = true;
+            if (error && !stdout) {
+               console.error("AI Model error:", error, stderr);
+               return res.status(500).json({ error: "Scoring failed: " + (stderr || error.message) });
+            }
+            try {
+              let data = null;
+              const lines = (stdout || "").split('\n');
+              for (const line of lines) {
+                const trimmed = line.trim();
+                if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+                  try {
+                    const parsed = JSON.parse(trimmed);
+                    if (parsed.similarity_score !== undefined || parsed.error) {
+                      data = parsed;
+                      break;
+                    }
+                  } catch (e) {}
+                }
+              }
+              if (!data) {
+                const match = (stdout || "").match(/\{[^{}]*"similarity_score"[^{}]*\}/) || (stdout || "").match(/\{[\s\S]*?\}/);
+                if (match) data = JSON.parse(match[0]);
+              }
+              if (!data) throw new Error("No valid JSON found in Python output: " + stdout);
+              
+              if (data.error) {
+                 return res.status(500).json({ error: data.error });
+              }
+              
+              const score = data.similarity_score;
+              
+              if (teamId && Team && Team.findByIdAndUpdate) {
+                  try {
+                    await Team.findByIdAndUpdate(teamId, { 
+                        score: score, 
+                        finalImageUrl: submitted_url,
+                        referenceImageUrl: original_url
+                    });
+                  } catch (dbErr) { console.log("DB update ignored:", dbErr.message); }
+                  
+                  try {
+                    const Submission = require('../models/Submission');
+                    await Submission.findOneAndUpdate(
+                        { team: teamId, round: 3 },
+                        { similarityScore: score },
+                        { sort: { timestamp: -1 } }
+                    );
+                  } catch (err) {}
+              }
+              
+              res.json(data);
+              resolve();
+            } catch (e) {
+              console.error("Failed to parse AI output:", stdout, e);
+              res.status(500).json({ error: "Failed to parse AI output" });
+              resolve();
+            }
+          });
+        });
+        if (executed) break;
       } catch (e) {
-        console.error("Failed to parse AI output:", stdout);
-        res.status(500).json({ error: "Failed to parse AI output" });
+        if (e.code === 'ENOENT') continue;
+        break;
       }
-    });
+    }
+    if (!executed) {
+      res.status(500).json({ error: "Python executable not found on server" });
+    }
+    } finally {
+      releasePythonLock();
+    }
   } catch (err) {
     console.error("Similarity Error:", err);
     res.status(500).json({ error: "Similarity scoring failed" });

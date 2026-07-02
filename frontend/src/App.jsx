@@ -899,11 +899,162 @@ const RegistrationScreen = ({ onRegister }) => {
 };
 
 const LobbyScreen = () => (
-  <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", position: "relative", zIndex: 1 }}>
-    <img src={gdgLogo} alt="GDG Logo" style={{ width: 80, marginBottom: 24, animation: "pulse 2s infinite" }} />
-    <div style={{ fontSize: 64, animation: "pulse 2s infinite" }}>⏳</div>
-    <div className="title-primary" style={{ marginTop: 24, fontSize: 32 }}>AWAITING OVERRIDE</div>
-    <div style={{ fontFamily: "'Share Tech Mono'", color: "var(--text-dim)", marginTop: 16, fontSize: 18 }}>Waiting for Admin to start the event...</div>
+  <div style={{
+    minHeight: "100vh",
+    width: "100%",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    position: "relative",
+    zIndex: 1,
+    padding: 24
+  }}>
+    {/* Ambient Aura Spheres */}
+    <motion.div
+      animate={{ opacity: [0.25, 0.5, 0.25], scale: [1, 1.2, 1] }}
+      transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
+      style={{
+        position: "absolute",
+        width: 650,
+        height: 650,
+        borderRadius: "50%",
+        background: "radial-gradient(circle, rgba(212,175,55,0.18) 0%, rgba(0,0,0,0) 70%)",
+        pointerEvents: "none",
+        zIndex: 0
+      }}
+    />
+    <motion.div
+      animate={{ opacity: [0.15, 0.35, 0.15], scale: [1.15, 0.95, 1.15] }}
+      transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
+      style={{
+        position: "absolute",
+        width: 800,
+        height: 800,
+        borderRadius: "50%",
+        background: "radial-gradient(circle, rgba(0,255,255,0.08) 0%, rgba(0,0,0,0) 70%)",
+        pointerEvents: "none",
+        zIndex: 0
+      }}
+    />
+
+    {/* Imperial Glass Card */}
+    <motion.div
+      initial={{ opacity: 0, y: 35, scale: 0.96 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ duration: 0.8, ease: "easeOut" }}
+      className="glass-panel"
+      style={{
+        position: "relative",
+        zIndex: 2,
+        width: "100%",
+        maxWidth: 740,
+        padding: "60px 48px",
+        textAlign: "center",
+        border: "1px solid rgba(212,175,55,0.45)",
+        borderRadius: 20,
+        background: "linear-gradient(180deg, rgba(12,16,26,0.88) 0%, rgba(5,7,12,0.96) 100%)",
+        boxShadow: "0 25px 70px rgba(0,0,0,0.95), 0 0 50px rgba(212,175,55,0.18), inset 0 1px 0 rgba(255,255,255,0.15)",
+        backdropFilter: "blur(24px)",
+        overflow: "hidden"
+      }}
+    >
+      {/* Classic Imperial Corner Accents */}
+      <div style={{ position: "absolute", top: 18, left: 18, width: 22, height: 22, borderTop: "2px solid #D4AF37", borderLeft: "2px solid #D4AF37", opacity: 0.85 }} />
+      <div style={{ position: "absolute", top: 18, right: 18, width: 22, height: 22, borderTop: "2px solid #D4AF37", borderRight: "2px solid #D4AF37", opacity: 0.85 }} />
+      <div style={{ position: "absolute", bottom: 18, left: 18, width: 22, height: 22, borderBottom: "2px solid #D4AF37", borderLeft: "2px solid #D4AF37", opacity: 0.85 }} />
+      <div style={{ position: "absolute", bottom: 18, right: 18, width: 22, height: 22, borderBottom: "2px solid #D4AF37", borderRight: "2px solid #D4AF37", opacity: 0.85 }} />
+
+      {/* Top Emblem Logo */}
+      <motion.div
+        animate={{ filter: ["drop-shadow(0 0 15px rgba(212,175,55,0.4))", "drop-shadow(0 0 30px rgba(212,175,55,0.8))", "drop-shadow(0 0 15px rgba(212,175,55,0.4))"] }}
+        transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+        style={{ display: "inline-block", marginBottom: 36, position: "relative" }}
+      >
+        <img src={gdgLogo} alt="GDG Logo" style={{ width: 90, margin: "0 auto", mixBlendMode: "screen" }} />
+      </motion.div>
+
+      {/* Animated Sacred Geometry Core */}
+      <div style={{ position: "relative", width: 130, height: 130, margin: "0 auto 40px auto", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
+          style={{
+            position: "absolute",
+            inset: 0,
+            borderRadius: "50%",
+            border: "1px dashed rgba(212,175,55,0.5)",
+            boxShadow: "0 0 20px rgba(212,175,55,0.2)"
+          }}
+        />
+        <motion.div
+          animate={{ rotate: -360 }}
+          transition={{ duration: 18, repeat: Infinity, ease: "linear" }}
+          style={{
+            position: "absolute",
+            inset: 14,
+            borderRadius: "50%",
+            border: "1px dotted rgba(0,255,255,0.6)"
+          }}
+        />
+        <motion.div
+          animate={{ scale: [0.94, 1.06, 0.94], opacity: [0.7, 1, 0.7] }}
+          transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
+          style={{
+            width: 60,
+            height: 60,
+            borderRadius: "50%",
+            background: "radial-gradient(circle, rgba(212,175,55,0.35) 0%, rgba(0,0,0,0) 70%)",
+            border: "1px solid #D4AF37",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            boxShadow: "0 0 25px rgba(212,175,55,0.5)"
+          }}
+        >
+          <div style={{ width: 14, height: 14, borderRadius: "50%", background: "#D4AF37", boxShadow: "0 0 12px #D4AF37" }} />
+        </motion.div>
+      </div>
+
+      {/* Royal Titles */}
+      <div style={{ fontSize: 13, fontFamily: "'Orbitron'", letterSpacing: 8, color: "var(--neon-cyan)", marginBottom: 14, textTransform: "uppercase", fontWeight: 700 }}>
+        Imperial Protocol Active
+      </div>
+      <h1 className="title-primary" style={{ fontSize: 40, letterSpacing: 6, color: "var(--neon-gold)", textShadow: "0 0 25px rgba(212,175,55,0.65)", marginBottom: 22 }}>
+        AWAITING OVERRIDE
+      </h1>
+      
+      {/* Classic Gold Filigree Divider */}
+      <div style={{ width: 160, height: 2, background: "linear-gradient(90deg, transparent, #D4AF37, transparent)", margin: "0 auto 28px auto" }} />
+
+      {/* Futuristic Telemetry Status Box */}
+      <div style={{
+        fontFamily: "'Share Tech Mono'",
+        color: "var(--text-main)",
+        fontSize: 16,
+        letterSpacing: 1.5,
+        background: "rgba(0, 0, 0, 0.65)",
+        border: "1px solid rgba(255, 255, 255, 0.1)",
+        padding: "16px 28px",
+        borderRadius: 8,
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 14,
+        boxShadow: "inset 0 0 25px rgba(0,0,0,0.8)"
+      }}>
+        <motion.span
+          animate={{ opacity: [1, 0.25, 1] }}
+          transition={{ duration: 1.5, repeat: Infinity }}
+          style={{ display: "inline-block", width: 10, height: 10, borderRadius: "50%", background: "#00FF66", boxShadow: "0 0 10px #00FF66" }}
+        />
+        <span>SYNCHRONIZED WITH DATACRON — STAND BY FOR ADMIN INITIATION</span>
+      </div>
+
+      {/* Footer Security Note */}
+      <div style={{ marginTop: 38, fontSize: 12, fontFamily: "'Inter'", color: "var(--text-dim)", letterSpacing: 2.5, textTransform: "uppercase", opacity: 0.65 }}>
+        Do not refresh or navigate away • Connection secured
+      </div>
+    </motion.div>
   </div>
 );
 
@@ -946,32 +1097,145 @@ const IntervalScreen = ({ title, message, timeLeft, isPaused, localDurationKey, 
   const isFinished = localDurationKey ? localTimeLeft <= 0 : (timeLeft <= 0 && !isPaused);
 
   return (
-    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", position: "relative", zIndex: 1, padding: 24, textAlign: "center" }}>
-      <img src={gdgLogo} alt="GDG Logo" style={{ width: 60, marginBottom: 20 }} />
-      <div style={{ fontSize: 64, marginBottom: 24 }}>🔀</div>
-      <div className="title-primary" style={{ fontSize: 40, color: "var(--neon-gold)", textShadow: "0 0 10px var(--neon-gold)" }}>{title}</div>
-      <div style={{ fontFamily: "'Share Tech Mono'", color: "var(--text-main)", fontSize: 20, maxWidth: 600, margin: "24px 0", lineHeight: 1.6 }}>{message}</div>
-      {isPaused && !localDurationKey ? (
-        <div style={{ fontSize: 48, fontFamily: "'Orbitron'", color: "#ff2a2a", marginBottom: 32, textShadow: "0 0 10px rgba(255,42,42,0.5)" }}>
-          TEMPORAL HALT
+    <div style={{
+      minHeight: "100vh",
+      width: "100%",
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      justifyContent: "center",
+      position: "relative",
+      zIndex: 1,
+      padding: 24
+    }}>
+      {/* Ambient Aura Spheres */}
+      <motion.div
+        animate={{ opacity: [0.2, 0.45, 0.2], scale: [1, 1.18, 1] }}
+        transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+        style={{
+          position: "absolute",
+          width: 650,
+          height: 650,
+          borderRadius: "50%",
+          background: "radial-gradient(circle, rgba(212,175,55,0.16) 0%, rgba(0,0,0,0) 70%)",
+          pointerEvents: "none",
+          zIndex: 0
+        }}
+      />
+
+      {/* Imperial Glass Card */}
+      <motion.div
+        initial={{ opacity: 0, y: 30, scale: 0.96 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.7, ease: "easeOut" }}
+        className="glass-panel"
+        style={{
+          position: "relative",
+          zIndex: 2,
+          width: "100%",
+          maxWidth: 740,
+          padding: "54px 44px",
+          textAlign: "center",
+          border: "1px solid rgba(212,175,55,0.45)",
+          borderRadius: 20,
+          background: "linear-gradient(180deg, rgba(12,16,26,0.88) 0%, rgba(5,7,12,0.96) 100%)",
+          boxShadow: "0 25px 70px rgba(0,0,0,0.95), 0 0 50px rgba(212,175,55,0.18), inset 0 1px 0 rgba(255,255,255,0.15)",
+          backdropFilter: "blur(24px)",
+          overflow: "hidden"
+        }}
+      >
+        {/* Classic Corner Accents */}
+        <div style={{ position: "absolute", top: 18, left: 18, width: 22, height: 22, borderTop: "2px solid #D4AF37", borderLeft: "2px solid #D4AF37", opacity: 0.85 }} />
+        <div style={{ position: "absolute", top: 18, right: 18, width: 22, height: 22, borderTop: "2px solid #D4AF37", borderRight: "2px solid #D4AF37", opacity: 0.85 }} />
+        <div style={{ position: "absolute", bottom: 18, left: 18, width: 22, height: 22, borderBottom: "2px solid #D4AF37", borderLeft: "2px solid #D4AF37", opacity: 0.85 }} />
+        <div style={{ position: "absolute", bottom: 18, right: 18, width: 22, height: 22, borderBottom: "2px solid #D4AF37", borderRight: "2px solid #D4AF37", opacity: 0.85 }} />
+
+        {/* Top Logo */}
+        <motion.div
+          animate={{ filter: ["drop-shadow(0 0 15px rgba(212,175,55,0.4))", "drop-shadow(0 0 30px rgba(212,175,55,0.8))", "drop-shadow(0 0 15px rgba(212,175,55,0.4))"] }}
+          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+          style={{ display: "inline-block", marginBottom: 28, position: "relative" }}
+        >
+          <img src={gdgLogo} alt="GDG Logo" style={{ width: 70, margin: "0 auto", mixBlendMode: "screen" }} />
+        </motion.div>
+
+        {/* Animated Sacred Geometry Ring */}
+        <div style={{ position: "relative", width: 100, height: 100, margin: "0 auto 32px auto", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+            style={{
+              position: "absolute",
+              inset: 0,
+              borderRadius: "50%",
+              border: "1px dashed rgba(212,175,55,0.5)",
+              boxShadow: "0 0 15px rgba(212,175,55,0.2)"
+            }}
+          />
+          <motion.div
+            animate={{ rotate: -360 }}
+            transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
+            style={{
+              position: "absolute",
+              inset: 12,
+              borderRadius: "50%",
+              border: "1px dotted rgba(0,255,255,0.6)"
+            }}
+          />
+          <motion.div
+            animate={{ scale: [0.95, 1.05, 0.95], opacity: [0.7, 1, 0.7] }}
+            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+            style={{
+              width: 48,
+              height: 48,
+              borderRadius: "50%",
+              background: "radial-gradient(circle, rgba(212,175,55,0.3) 0%, rgba(0,0,0,0) 70%)",
+              border: "1px solid #D4AF37",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              boxShadow: "0 0 20px rgba(212,175,55,0.5)"
+            }}
+          >
+            <div style={{ width: 10, height: 10, borderRadius: "50%", background: "#D4AF37", boxShadow: "0 0 10px #D4AF37" }} />
+          </motion.div>
         </div>
-      ) : displayTime > 0 ? (
-        <div style={{ fontSize: 48, fontFamily: "'Orbitron'", color: "#D4AF37", marginBottom: 32 }}>
-          {Math.floor(displayTime / 60)}:{String(displayTime % 60).padStart(2, '0')}
+
+        <div style={{ fontSize: 13, fontFamily: "'Orbitron'", letterSpacing: 8, color: "var(--neon-cyan)", marginBottom: 12, textTransform: "uppercase", fontWeight: 700 }}>
+          Temporal Phase Transition
         </div>
-      ) : (
-        <div style={{ fontSize: 48, fontFamily: "'Orbitron'", color: "#ff2a2a", marginBottom: 32, textShadow: "0 0 10px rgba(255,42,42,0.5)" }}>
-          00:00
+        <h1 className="title-primary" style={{ fontSize: 38, letterSpacing: 5, color: "var(--neon-gold)", textShadow: "0 0 25px rgba(212,175,55,0.65)", marginBottom: 16 }}>
+          {title}
+        </h1>
+        <div style={{ width: 140, height: 2, background: "linear-gradient(90deg, transparent, #D4AF37, transparent)", margin: "0 auto 24px auto" }} />
+        
+        <div style={{ fontFamily: "'Share Tech Mono'", color: "var(--text-main)", fontSize: 18, maxWidth: 580, margin: "0 auto 32px auto", lineHeight: 1.6, background: "rgba(0,0,0,0.5)", padding: "16px 20px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.08)" }}>
+          {message}
         </div>
-      )}
-      <div style={{ fontFamily: "'Cinzel', serif", color: "var(--neon-cyan)", letterSpacing: 4 }}>
-        {isFinished ? (localDurationKey ? "TIME UP . WAITING FOR ADMIN INSTRUCTIONS" : "WAITING FOR ADMIN INSTRUCTIONS . HALTED !!") : "AWAITING PROTOCOL..."}
-      </div>
+
+        {isPaused && !localDurationKey ? (
+          <div style={{ fontSize: 44, fontFamily: "'Orbitron'", color: "#ff2a2a", marginBottom: 28, textShadow: "0 0 15px rgba(255,42,42,0.6)", fontWeight: "bold" }}>
+            TEMPORAL HALT
+          </div>
+        ) : displayTime > 0 ? (
+          <div style={{ fontSize: 52, fontFamily: "'Orbitron'", color: "#D4AF37", marginBottom: 28, textShadow: "0 0 20px rgba(212,175,55,0.5)", fontWeight: 900 }}>
+            {Math.floor(displayTime / 60)}:{String(displayTime % 60).padStart(2, '0')}
+          </div>
+        ) : (
+          <div style={{ fontSize: 44, fontFamily: "'Orbitron'", color: "#ff2a2a", marginBottom: 28, textShadow: "0 0 15px rgba(255,42,42,0.6)" }}>
+            00:00
+          </div>
+        )}
+
+        <div style={{ fontFamily: "'Cinzel', serif", color: "var(--neon-cyan)", letterSpacing: 4, fontSize: 14, fontWeight: 600 }}>
+          {isFinished ? (localDurationKey ? "TIME UP • AWAITING ADMIN COMMANDS" : "WAITING FOR ADMIN INSTRUCTIONS • HALTED !!") : "AWAITING PROTOCOL SYNCHRONIZATION..."}
+        </div>
+      </motion.div>
     </div>
   );
 };
 
-const RoundDisplay = ({ playerLabel, targetImage, onComplete, roundLabel, storageKey, isPaused, timeLeft, isRoundEnded, teamId, registerGeminiWindow }) => {
+const RoundDisplay = ({ playerLabel, targetImage, onComplete, onImageUploaded, roundLabel, storageKey, isPaused, timeLeft, isRoundEnded, teamId, registerGeminiWindow }) => {
   const [uploading, setUploading] = useState(false);
   const [uploadedImgUrl, setUploadedImgUrl] = useState(null);
   const [isGeminiLaunched, setIsGeminiLaunched] = useState(false);
@@ -983,12 +1247,12 @@ const RoundDisplay = ({ playerLabel, targetImage, onComplete, roundLabel, storag
   const isTimeUp = timeLeft <= 0;
   const effectivelyEnded = isRoundEnded || isTimeUp;
 
-  const [timeWarning, setTimeWarning] = useState(null);
   const [isSubmitted, setIsSubmitted] = useState(() => {
     try {
       return localStorage.getItem(`maya_submitted_${teamId}_${storageKey}`) === "true";
     } catch { return false; }
   });
+
   const [submittedLink, setSubmittedLink] = useState(() => {
     try {
       return localStorage.getItem(`maya_sublink_${teamId}_${storageKey}`) || "";
@@ -996,24 +1260,27 @@ const RoundDisplay = ({ playerLabel, targetImage, onComplete, roundLabel, storag
   });
 
   useEffect(() => {
-    if (timeLeft === 30) {
-      setTimeWarning("⏳ 30 SECONDS REMAINING! PREPARE AND SELECT YOUR IMAGE TO SUBMIT!");
-    } else if (timeLeft === 15) {
-      setTimeWarning("⏳ 15 SECONDS REMAINING! ALMOST TIME UP, SELECT YOUR IMAGE NOW!");
-    } else if (timeLeft === 10) {
-      setTimeWarning("⚠️ 10 SECONDS REMAINING! FINAL SECONDS! SUBMIT YOUR IMAGE IMMEDIATELY!");
+    try {
+      setIsSubmitted(localStorage.getItem(`maya_submitted_${teamId}_${storageKey}`) === "true");
+      setSubmittedLink(localStorage.getItem(`maya_sublink_${teamId}_${storageKey}`) || "");
+    } catch {}
+  }, [storageKey, teamId]);
+
+  useEffect(() => {
+    let timer;
+    if (timeLeft === 300) setTimeWarning("⚠️ CRITICAL ALERT: 5 MINUTES REMAINING ⚠️");
+    else if (timeLeft === 60) setTimeWarning("🚨 PROTOCOL WARNING: 60 SECONDS LEFT! SUBMIT IMMEDIATELY! 🚨");
+    else if (timeLeft === 10) setTimeWarning("⏳ FINAL COUNTDOWN: 10 SECONDS UNTIL LOCKDOWN! ⏳");
+    if (timeLeft === 300 || timeLeft === 60 || timeLeft === 10) {
+      timer = setTimeout(() => setTimeWarning(""), 8000);
     }
+    return () => clearTimeout(timer);
   }, [timeLeft]);
 
-  useEffect(() => {
-    if (timeWarning) {
-      const timer = setTimeout(() => setTimeWarning(null), 4000);
-      return () => clearTimeout(timer);
-    }
-  }, [timeWarning]);
+  const [timeWarning, setTimeWarning] = useState("");
 
   useEffect(() => {
-    if (!effectivelyEnded && !isPaused) {
+    if (effectivelyEnded && !isPaused) {
       const handleBeforeUnload = (e) => {
         e.preventDefault();
         e.returnValue = "An active round is running! Leaving now is prohibited.";
@@ -1041,18 +1308,15 @@ const RoundDisplay = ({ playerLabel, targetImage, onComplete, roundLabel, storag
     if (isPaused) setIsGeminiLaunched(false);
   }, [isPaused]);
 
-  const fmtTime = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+  const fmtTime = (s) => {
+    const mins = Math.floor(s / 60);
+    const secs = s % 60;
+    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+  };
 
-  const handleOpenGemini = () => {
-    const sw = window.screen.availWidth;
-    const sh = window.screen.availHeight;
-    const half = Math.floor(sw / 2);
-    const geminiWin = window.open('https://gemini.google.com', 'GeminiPopup', `width=${half},height=${sh},left=${half},top=0`);
-    if (registerGeminiWindow) registerGeminiWindow(geminiWin);
-    try {
-      window.moveTo(0, 0);
-      window.resizeTo(half, sh);
-    } catch (e) { console.warn("Browser blocked window resize", e); }
+  const launchGemini = () => {
+    const w = window.open("https://gemini.google.com/app", "GeminiSplitScreen", "width=800,height=900,left=800,top=50");
+    if (registerGeminiWindow && w) registerGeminiWindow(w);
     setIsGeminiLaunched(true);
   };
 
@@ -1069,6 +1333,7 @@ const RoundDisplay = ({ playerLabel, targetImage, onComplete, roundLabel, storag
       const data = await uploadRes.json();
       if (!data.success) throw new Error(data.error || data.message || "Upload failed");
       setUploadedImgUrl(data.url);
+      if (onImageUploaded) onImageUploaded(data.url, storageKey);
     } catch (err) {
       console.error(err);
       alert(err.message || "Failed to upload image. Please try again.");
@@ -1078,6 +1343,10 @@ const RoundDisplay = ({ playerLabel, targetImage, onComplete, roundLabel, storag
   };
 
   const handleSubmit = async () => {
+    if (!uploadedImgUrl) {
+      alert("SECURITY LOCK: You must upload your generated image artifact before submitting to Datacron!");
+      return;
+    }
     const linkToVerify = geminiLink.trim() || savedSessionLink;
     if (!linkToVerify) {
       alert("SECURITY LOCK: You must paste your Gemini Chat Link to verify this spell.");
@@ -1101,6 +1370,7 @@ const RoundDisplay = ({ playerLabel, targetImage, onComplete, roundLabel, storag
       } catch (e) {}
       setIsSubmitted(true);
       setSubmittedLink(linkToVerify);
+      if (onImageUploaded) onImageUploaded(uploadedImgUrl, storageKey);
       if (effectivelyEnded) {
         onComplete(uploadedImgUrl, linkToVerify);
       }
@@ -1113,36 +1383,184 @@ const RoundDisplay = ({ playerLabel, targetImage, onComplete, roundLabel, storag
 
   if (isSubmitted && !effectivelyEnded) {
     return (
-      <motion.div layout initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="chat-layout" style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "100vh", width: "100%", padding: 40, zIndex: 1, position: "relative" }}>
+      <motion.div 
+        layout 
+        initial={{ opacity: 0, scale: 0.95 }} 
+        animate={{ opacity: 1, scale: 1 }} 
+        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+        style={{ 
+          display: "flex", 
+          flexDirection: "column", 
+          alignItems: "center", 
+          justifyContent: "center", 
+          minHeight: "100vh", 
+          width: "100%", 
+          padding: "40px 20px", 
+          zIndex: 10, 
+          position: "relative",
+          background: "radial-gradient(circle at 50% 30%, rgba(60, 40, 10, 0.35) 0%, rgba(10, 8, 14, 0.85) 60%, rgba(3, 2, 5, 0.98) 100%)"
+        }}
+      >
         {warningBanner}
-        <div className="glass-panel" style={{ width: "100%", maxWidth: 700, textAlign: "center", padding: 48, border: "1px solid var(--neon-green)", background: "rgba(0, 20, 10, 0.7)", boxShadow: "0 0 40px rgba(0, 255, 136, 0.2)" }}>
-          <div style={{ fontSize: 64, marginBottom: 20 }}>🛡️</div>
-          <div className="title-primary" style={{ color: "var(--neon-green)", marginBottom: 16 }}>SPELL SEALED & SUBMITTED!</div>
-          <div style={{ fontFamily: "'Share Tech Mono'", fontSize: 16, color: "#fff", marginBottom: 32, lineHeight: 1.6 }}>
-            YOUR ARTIFACT HAS BEEN TRANSMITTED TO THE DATACRON.<br/>
-            <strong>SECURITY PROTOCOL ACTIVE:</strong> YOU CANNOT LEAVE THIS TERMINAL UNTIL THE ROUND EXPIRES.
+
+        {/* Ambient background gold glow particles */}
+        <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: "800px", height: "800px", background: "radial-gradient(circle, rgba(212, 175, 55, 0.08) 0%, transparent 70%)", pointerEvents: "none", filter: "blur(40px)" }} />
+
+        <motion.div 
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.2, duration: 0.7 }}
+          style={{ 
+            width: "100%", 
+            maxWidth: 760, 
+            textAlign: "center", 
+            padding: "56px 48px", 
+            borderRadius: 16,
+            background: "linear-gradient(145deg, rgba(24, 20, 28, 0.85) 0%, rgba(12, 10, 16, 0.95) 100%)",
+            border: "1px solid rgba(212, 175, 55, 0.4)", 
+            boxShadow: "0 30px 80px rgba(0, 0, 0, 0.9), 0 0 50px rgba(212, 175, 55, 0.15), inset 0 1px 2px rgba(255, 235, 170, 0.3), inset 0 -1px 2px rgba(0, 0, 0, 0.8)",
+            position: "relative",
+            overflow: "hidden",
+            backdropFilter: "blur(20px)"
+          }}
+        >
+          {/* Top Royal Accent Line */}
+          <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: "linear-gradient(90deg, transparent 0%, #D4AF37 30%, #FFF8DC 50%, #D4AF37 70%, transparent 100%)", boxShadow: "0 0 15px rgba(212, 175, 55, 0.8)" }} />
+
+          {/* Animated Royal Emblem */}
+          <div style={{ position: "relative", width: 100, height: 100, margin: "0 auto 28px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <motion.div 
+              animate={{ rotate: 360 }}
+              transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
+              style={{ position: "absolute", inset: 0, borderRadius: "50%", border: "1px dashed rgba(212, 175, 55, 0.4)", boxShadow: "0 0 20px rgba(212, 175, 55, 0.1)" }}
+            />
+            <motion.div 
+              animate={{ rotate: -360 }}
+              transition={{ duration: 18, repeat: Infinity, ease: "linear" }}
+              style={{ position: "absolute", inset: 8, borderRadius: "50%", border: "1px dotted rgba(212, 175, 55, 0.6)" }}
+            />
+            <motion.div
+              animate={{ scale: [1, 1.08, 1], filter: ["drop-shadow(0 0 15px rgba(212,175,55,0.6))", "drop-shadow(0 0 25px rgba(255,215,0,0.9))", "drop-shadow(0 0 15px rgba(212,175,55,0.6))"] }}
+              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+              style={{ fontSize: 52, zIndex: 2, lineHeight: 1 }}
+            >
+              🛡️
+            </motion.div>
+          </div>
+
+          {/* Title */}
+          <h1 style={{ 
+            fontFamily: "'Cinzel', 'Orbitron', serif", 
+            fontSize: 34, 
+            fontWeight: 900, 
+            letterSpacing: 4, 
+            margin: "0 0 12px 0",
+            background: "linear-gradient(135deg, #FFFFFF 0%, #F5E6B3 35%, #D4AF37 70%, #AA771C 100%)",
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+            textShadow: "0 2px 10px rgba(0,0,0,0.5)",
+            textTransform: "uppercase"
+          }}>
+            Artifact Sealed & Transmitted
+          </h1>
+
+          {/* Royal Spear Divider */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 16, margin: "20px auto 28px", opacity: 0.8 }}>
+            <div style={{ height: 1, width: 80, background: "linear-gradient(90deg, transparent, #D4AF37)" }} />
+            <div style={{ color: "#D4AF37", fontSize: 14, letterSpacing: 2 }}>❖ DATACRON PROTOCOL ❖</div>
+            <div style={{ height: 1, width: 80, background: "linear-gradient(90deg, #D4AF37, transparent)" }} />
+          </div>
+
+          {/* Security Vault Notification */}
+          <div style={{ 
+            background: "linear-gradient(90deg, rgba(40, 15, 20, 0.6) 0%, rgba(20, 12, 18, 0.8) 50%, rgba(40, 15, 20, 0.6) 100%)", 
+            border: "1px solid rgba(255, 60, 60, 0.3)", 
+            borderRadius: 8, 
+            padding: "16px 24px", 
+            marginBottom: 36,
+            display: "inline-block",
+            maxWidth: "90%",
+            boxShadow: "0 4px 20px rgba(0,0,0,0.4)"
+          }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, color: "#FF5555", fontFamily: "'Orbitron', sans-serif", fontSize: 11, fontWeight: 700, letterSpacing: 2, marginBottom: 4 }}>
+              <span style={{ display: "inline-block", width: 6, height: 6, borderRadius: "50%", background: "#FF5555", boxShadow: "0 0 8px #FF5555" }} />
+              LOCKDOWN PROTOCOL ACTIVE
+            </div>
+            <div style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 13, color: "rgba(255, 235, 235, 0.85)", letterSpacing: 0.5, lineHeight: 1.5 }}>
+              Your submission is locked in the sanctuary. You must remain at this terminal until the trial countdown concludes.
+            </div>
           </div>
           
-          <div style={{ background: "rgba(0,0,0,0.6)", padding: 24, borderRadius: 8, border: "1px solid rgba(255,255,255,0.1)", marginBottom: 32 }}>
-            <div style={{ fontSize: 12, color: "var(--text-dim)", letterSpacing: 4, marginBottom: 8 }}>ROUND TIME REMAINING</div>
-            <div style={{ fontSize: 48, fontFamily: "'Orbitron'", color: "var(--neon-gold)", textShadow: "0 0 15px rgba(212,175,55,0.5)" }}>
+          {/* Luxury Chronometer Display */}
+          <div style={{ 
+            background: "linear-gradient(180deg, rgba(20, 16, 22, 0.9) 0%, rgba(8, 6, 10, 0.95) 100%)", 
+            padding: "28px 36px", 
+            borderRadius: 12, 
+            border: "1px solid rgba(212, 175, 55, 0.35)", 
+            boxShadow: "0 15px 35px rgba(0,0,0,0.7), inset 0 0 30px rgba(212, 175, 55, 0.08)", 
+            marginBottom: 36,
+            position: "relative"
+          }}>
+            <div style={{ position: "absolute", top: 8, left: 8, width: 8, height: 8, borderTop: "1px solid #D4AF37", borderLeft: "1px solid #D4AF37" }} />
+            <div style={{ position: "absolute", top: 8, right: 8, width: 8, height: 8, borderTop: "1px solid #D4AF37", borderRight: "1px solid #D4AF37" }} />
+            <div style={{ position: "absolute", bottom: 8, left: 8, width: 8, height: 8, borderBottom: "1px solid #D4AF37", borderLeft: "1px solid #D4AF37" }} />
+            <div style={{ position: "absolute", bottom: 8, right: 8, width: 8, height: 8, borderBottom: "1px solid #D4AF37", borderRight: "1px solid #D4AF37" }} />
+
+            <div style={{ fontSize: 11, fontFamily: "'Orbitron', sans-serif", color: "rgba(212, 175, 55, 0.8)", letterSpacing: 5, marginBottom: 12 }}>ROUND TIME REMAINING</div>
+            
+            <motion.div 
+              animate={{ opacity: [0.95, 1, 0.95] }}
+              transition={{ duration: 2, repeat: Infinity }}
+              style={{ 
+                fontSize: 60, 
+                fontFamily: "'Orbitron', sans-serif", 
+                fontWeight: 900,
+                letterSpacing: 4,
+                color: "#FDF5E6", 
+                textShadow: "0 0 20px rgba(212,175,55,0.7), 0 0 40px rgba(212,175,55,0.3), 0 2px 4px rgba(0,0,0,0.8)" 
+              }}
+            >
               {fmtTime(timeLeft)}
-            </div>
-            <div style={{ fontSize: 11, color: "var(--neon-cyan)", letterSpacing: 2, marginTop: 8 }}>
-              AUTOMATIC PHASE TRANSITION WHEN TIMER REACHES 00:00
+            </motion.div>
+
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, marginTop: 14 }}>
+              <div style={{ width: 4, height: 4, borderRadius: "50%", background: "#D4AF37" }} />
+              <div style={{ fontSize: 11, fontFamily: "'Space Grotesk', sans-serif", color: "rgba(255, 255, 255, 0.6)", letterSpacing: 1.5 }}>
+                AUTOMATIC PHASE TRANSITION AT 00:00
+              </div>
+              <div style={{ width: 4, height: 4, borderRadius: "50%", background: "#D4AF37" }} />
             </div>
           </div>
 
-          <button className="btn-imperial-danger" style={{ padding: "12px 24px", fontSize: 12 }} onClick={() => {
-            setIsSubmitted(false);
-            try {
-              localStorage.removeItem(`maya_submitted_${teamId}_${storageKey}`);
-              localStorage.removeItem(`maya_sublink_${teamId}_${storageKey}`);
-            } catch (e) {}
-          }}>
-            MODIFY SUBMISSION
-          </button>
-        </div>
+          {/* Modify Submission Button */}
+          <motion.button 
+            whileHover={{ scale: 1.03, boxShadow: "0 0 25px rgba(212, 175, 55, 0.4)" }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => {
+              setIsSubmitted(false);
+              try {
+                localStorage.removeItem(`maya_submitted_${teamId}_${storageKey}`);
+                localStorage.removeItem(`maya_sublink_${teamId}_${storageKey}`);
+              } catch (e) {}
+            }}
+            style={{ 
+              padding: "16px 36px", 
+              fontSize: 13, 
+              fontFamily: "'Orbitron', sans-serif",
+              fontWeight: 700,
+              letterSpacing: 3,
+              color: "#FFF",
+              background: "linear-gradient(135deg, rgba(140, 20, 30, 0.8) 0%, rgba(80, 10, 15, 0.9) 100%)",
+              border: "1px solid rgba(255, 100, 100, 0.5)",
+              borderRadius: 6,
+              cursor: "pointer",
+              boxShadow: "0 8px 20px rgba(0, 0, 0, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.2)",
+              transition: "all 0.3s ease"
+            }}
+          >
+            ❖ MODIFY SUBMISSION ❖
+          </motion.button>
+        </motion.div>
       </motion.div>
     );
   }
@@ -1250,7 +1668,7 @@ const RoundDisplay = ({ playerLabel, targetImage, onComplete, roundLabel, storag
             <div style={{ fontSize: 48, marginBottom: 24 }}>✨</div>
             <div style={{ fontFamily: "'Orbitron'", fontSize: 24, color: "var(--neon-gold)", marginBottom: 16 }}>SPELL GENERATION</div>
             <div style={{ color: "var(--text-dim)", marginBottom: 32, lineHeight: 1.6 }}>Launch Gemini in Split-Screen Mode to generate your spell.<br />Your target image will remain visible here.</div>
-            <button className="btn-imperial" onClick={handleOpenGemini} style={{ width: "100%", padding: 20, fontSize: 16, display: "flex", justifyContent: "center", gap: 12 }}>{savedSessionLink ? "RE-CONTINUE GEMINI SESSION ➔" : "LAUNCH GEMINI (SPLIT SCREEN) ➔"}</button>
+            <button className="btn-imperial" onClick={launchGemini} style={{ width: "100%", padding: 20, fontSize: 16, display: "flex", justifyContent: "center", gap: 12 }}>{savedSessionLink ? "RE-CONTINUE GEMINI SESSION ➔" : "LAUNCH GEMINI (SPLIT SCREEN) ➔"}</button>
           </div>
         )}
       </motion.div>
@@ -1282,6 +1700,7 @@ const JudgmentScreen = ({ originalImg, finalImg, score, onRedirect }) => {
   const [countdown, setCountdown] = useState(60);
 
   useEffect(() => {
+    if (score === null || score === undefined) return; // Wait until AI Siamese model finishes scoring!
     const timer = setInterval(() => {
       setCountdown((prev) => {
         if (prev <= 1) {
@@ -1293,17 +1712,29 @@ const JudgmentScreen = ({ originalImg, finalImg, score, onRedirect }) => {
       });
     }, 1000);
     return () => clearInterval(timer);
-  }, [onRedirect]);
+  }, [score, onRedirect]);
+
+  const isScoring = score === null || score === undefined;
 
   return (
     <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 40, position: "relative", zIndex: 1 }}>
       <img src={gdgLogo} alt="GDG Logo" style={{ width: 80, marginBottom: 20 }} />
       <div className="title-primary" style={{ marginBottom: 20, color: "var(--neon-gold)", textShadow: "0 0 20px var(--neon-gold)", animation: "pulse 2s infinite" }}>SIMILARITY RESULTS</div>
-      <div style={{ fontFamily: "'Orbitron'", color: "var(--neon-cyan)", fontSize: 24, marginBottom: 16, letterSpacing: 4 }}>
-        AWAITING FINAL VERDICT
+      
+      <div style={{ fontFamily: "'Orbitron'", color: isScoring ? "var(--neon-cyan)" : "var(--neon-gold)", fontSize: 26, marginBottom: 16, letterSpacing: 4, textAlign: "center", textShadow: isScoring ? "0 0 15px var(--neon-cyan)" : "0 0 20px var(--neon-gold)" }}>
+        {isScoring ? "⏳ SIAMESE NEURAL NET COMPUTING VERDICT..." : "⚡ SPELL MATCH VERDICT SEALED ⚡"}
       </div>
-      <div style={{ fontFamily: "'Share Tech Mono'", color: "var(--neon-gold)", fontSize: 16, marginBottom: 40, letterSpacing: 2, background: "rgba(0,0,0,0.6)", padding: "8px 20px", borderRadius: 4, border: "1px solid rgba(212,175,55,0.4)" }}>
-        AUTOMATIC REDIRECT TO LEADERBOARD IN: <span style={{ color: "#fff", fontWeight: "bold" }}>{countdown}s</span>
+
+      <div style={{ fontFamily: "'Share Tech Mono'", color: "var(--neon-gold)", fontSize: 16, marginBottom: 40, letterSpacing: 2, background: "rgba(0,0,0,0.6)", padding: "10px 24px", borderRadius: 4, border: "1px solid rgba(212,175,55,0.4)" }}>
+        {isScoring ? (
+          <span style={{ color: "var(--neon-cyan)", animation: "pulse 1.5s infinite" }}>
+            🤖 EVALUATING HIGH-RES PIXEL MATRIX (~30-40s)... PLEASE HOLD POSITION
+          </span>
+        ) : (
+          <span>
+            AUTOMATIC REDIRECT TO LEADERBOARD IN: <span style={{ color: "#fff", fontWeight: "bold", fontSize: 18 }}>{countdown}s</span>
+          </span>
+        )}
       </div>
 
       <div style={{ display: "flex", gap: 60, alignItems: "center", width: "100%", maxWidth: 1200, perspective: 1000 }}>
@@ -1311,9 +1742,18 @@ const JudgmentScreen = ({ originalImg, finalImg, score, onRedirect }) => {
           <div className="title-secondary">TARGET DATACRON</div>
           <img src={originalImg} alt="orig" style={{ width: "100%", aspectRatio: "1/1", objectFit: "contain", borderRadius: 8, boxShadow: "0 0 30px rgba(0,0,0,0.8)" }} />
         </div>
-        <div style={{ width: 260, textAlign: "center", animation: "float 4s infinite" }}>
-          <div style={{ fontSize: 80, fontFamily: "'Orbitron'", color: "var(--neon-gold)", textShadow: "0 0 30px var(--neon-gold)", fontWeight: 900 }}>{score ? `${score.toFixed(1)}%` : "..."}</div>
-          <div style={{ fontFamily: "'Share Tech Mono'", color: "var(--text-dim)", letterSpacing: 8, fontSize: 18 }}>SYNCHRONIZATION</div>
+        <div style={{ width: 300, textAlign: "center", animation: isScoring ? "pulse 1.5s infinite" : "float 4s infinite" }}>
+          {isScoring ? (
+            <div style={{ padding: 20, background: "rgba(0,255,255,0.05)", borderRadius: 12, border: "1px dashed var(--neon-cyan)" }}>
+              <div style={{ fontSize: 40, marginBottom: 10 }}>🤖⚡</div>
+              <div style={{ fontFamily: "'Orbitron'", color: "var(--neon-cyan)", fontSize: 18, letterSpacing: 2 }}>ANALYZING...</div>
+            </div>
+          ) : (
+            <div>
+              <div style={{ fontSize: 84, fontFamily: "'Orbitron'", color: "var(--neon-gold)", textShadow: "0 0 35px var(--neon-gold)", fontWeight: 900, lineHeight: 1 }}>{score.toFixed(1)}%</div>
+              <div style={{ fontFamily: "'Share Tech Mono'", color: "var(--neon-cyan)", letterSpacing: 6, fontSize: 16, marginTop: 12, fontWeight: "bold" }}>SIAMESE MATCH</div>
+            </div>
+          )}
         </div>
         <div className="glass-panel cinematic-card" style={{ flex: 1, textAlign: "center", transform: "rotateY(-10deg)" }}>
           <div className="title-secondary">GENERATED SPELL</div>
@@ -1357,9 +1797,9 @@ const PlayerSection = ({ globalTeams, setGlobalTeams }) => {
 
   const phase = currentTeamState.phase || (myTeam ? "lobby" : "register");
   const disqualifiedReason = currentTeamState.disqualifiedReason || null;
-  const r1Img = currentTeamState.r1Img || null;
-  const r2Img = currentTeamState.r2Img || null;
-  const r3Img = currentTeamState.r3Img || null;
+  const r1Img = currentTeamState.r1Img || (myTeam?.id ? localStorage.getItem(`maya_subimg_${myTeam.id}_r1`) : null) || null;
+  const r2Img = currentTeamState.r2Img || (myTeam?.id ? localStorage.getItem(`maya_subimg_${myTeam.id}_r2`) : null) || null;
+  const r3Img = currentTeamState.r3Img || (myTeam?.id ? localStorage.getItem(`maya_subimg_${myTeam.id}_r3`) : null) || null;
   const finalImg = currentTeamState.finalImage || null;
   const score = currentTeamState.score || null;
 
@@ -1380,6 +1820,33 @@ const PlayerSection = ({ globalTeams, setGlobalTeams }) => {
         .catch(console.error);
     }
   }, [myTeam?.id, targetImage]);
+
+  // Ensure previous round's image is always fetched from backend if missing in Round 2 or Round 3!
+  useEffect(() => {
+    if (!myTeam?.id) return;
+    if ((phase === "r2" || phase === "wait_for_r2_end" || phase === "interval1") && !r1Img) {
+      fetch(`${API}/api/target-image?teamId=${myTeam.id}`)
+        .then(r => r.json())
+        .then(d => {
+          if (d.url) {
+            setR1Img(d.url);
+            try { localStorage.setItem(`maya_subimg_${myTeam.id}_r1`, d.url); } catch {}
+          }
+        })
+        .catch(() => {});
+    }
+    if ((phase === "r3" || phase === "wait_for_r3_end" || phase === "interval2" || phase === "select" || phase === "judgment") && !r2Img) {
+      fetch(`${API}/api/target-image?teamId=${myTeam.id}`)
+        .then(r => r.json())
+        .then(d => {
+          if (d.url) {
+            setR2Img(d.url);
+            try { localStorage.setItem(`maya_subimg_${myTeam.id}_r2`, d.url); } catch {}
+          }
+        })
+        .catch(() => {});
+    }
+  }, [phase, myTeam?.id, r1Img, r2Img]);
 
   const updateTeamStatus = async (updates) => {
     setLocalTeamState(prev => ({ ...prev, ...updates }));
@@ -1551,16 +2018,26 @@ const PlayerSection = ({ globalTeams, setGlobalTeams }) => {
   const displayTimeLeft = status.endsWith('_ended') ? 0 : timeLeft;
 
   // Common props passed to all RoundDisplay instances
-  const roundProps = { teamId: myTeam.id, isPaused, timeLeft: displayTimeLeft, registerGeminiWindow };
+  const roundProps = {
+    teamId: myTeam.id,
+    isPaused,
+    timeLeft: displayTimeLeft,
+    registerGeminiWindow,
+    onImageUploaded: (img, key) => {
+      if (key === 'r1') setR1Img(img);
+      if (key === 'r2') setR2Img(img);
+      if (key === 'r3') setR3Img(img);
+    }
+  };
 
   if (phase === "lobby") return <LobbyScreen />;
-  if (phase === "r1") return <RoundDisplay {...roundProps} storageKey="r1" playerLabel={`PLAYER 1 (${myTeam.player1})`} targetImage={targetImage} roundLabel="ROUND 1: INITIAL CREATION" onComplete={(img, link) => { setR1Img(img); updateTeamStatus({ round: 1, r1Link: link }); setPhase("wait_for_r1_end"); }} isRoundEnded={status === 'round1_ended'} />;
+  if (phase === "r1") return <RoundDisplay key="r1" {...roundProps} storageKey="r1" playerLabel={`PLAYER 1 (${myTeam.player1})`} targetImage={targetImage} roundLabel="ROUND 1: INITIAL CREATION" onComplete={(img, link) => { setR1Img(img); updateTeamStatus({ round: 1, r1Link: link }); setPhase("wait_for_r1_end"); }} isRoundEnded={status === 'round1_ended'} />;
   if (phase === "wait_for_r1_end") return <IntervalScreen key="wait1" title="HOLD POSITION" message="AWAITING ADMIN PROTOCOL FOR ROUND 1 COMPLETION" timeLeft={displayTimeLeft} isPaused={isPaused} />;
   if (phase === "interval1") return <IntervalScreen key="int1" title="VERBAL TRANSFER" message={`PLAYER 1 (${myTeam.player1}), describe the target image to PLAYER 2 (${myTeam.player2}) verbally. Do not show them the screen!`} localDurationKey={`verbal_transfer_${session?.roundEndTime || '1'}`} localDuration={5} />;
-  if (phase === "r2") return <RoundDisplay {...roundProps} storageKey="r2" playerLabel={`PLAYER 2 (${myTeam.player2})`} targetImage={r1Img} roundLabel="ROUND 2: BLIND RECREATION" onComplete={(img, link) => { setR2Img(img); updateTeamStatus({ round: 2, r2Link: link }); setPhase("wait_for_r2_end"); }} isRoundEnded={status === 'round2_ended'} />;
+  if (phase === "r2") return <RoundDisplay key="r2" {...roundProps} storageKey="r2" playerLabel={`PLAYER 2 (${myTeam.player2})`} targetImage={r1Img} roundLabel="ROUND 2: BLIND RECREATION" onComplete={(img, link) => { setR2Img(img); updateTeamStatus({ round: 2, r2Link: link }); setPhase("wait_for_r2_end"); }} isRoundEnded={status === 'round2_ended'} />;
   if (phase === "wait_for_r2_end") return <IntervalScreen key="wait2" title="HOLD POSITION" message="AWAITING ADMIN PROTOCOL FOR ROUND 2 COMPLETION" timeLeft={displayTimeLeft} isPaused={isPaused} />;
   if (phase === "wait_for_r3") return <IntervalScreen key="wait3" title="PLAYER SWITCHING" message={`PLAYER 2 (${myTeam.player2}), step back. PLAYER 1 (${myTeam.player1}), prepare for ROUND 3.`} localDurationKey={`player_switching_${session?.roundEndTime || '2'}`} localDuration={5} />;
-  if (phase === "r3") return <RoundDisplay {...roundProps} storageKey="r3" playerLabel={`PLAYER 1 (${myTeam.player1})`} targetImage={r2Img} roundLabel="ROUND 3: REFINEMENT" onComplete={(img, link) => { setR3Img(img); updateTeamStatus({ r3Link: link }); setPhase("wait_for_r3_end"); }} isRoundEnded={status === 'round3_ended'} />;
+  if (phase === "r3") return <RoundDisplay key="r3" {...roundProps} storageKey="r3" playerLabel={`PLAYER 1 (${myTeam.player1})`} targetImage={r2Img} roundLabel="ROUND 3: REFINEMENT" onComplete={(img, link) => { setR3Img(img); updateTeamStatus({ r3Link: link }); setPhase("wait_for_r3_end"); }} isRoundEnded={status === 'round3_ended'} />;
   if (phase === "wait_for_r3_end") return <IntervalScreen key="wait_r3_end" title="HOLD POSITION" message="AWAITING ADMIN PROTOCOL FOR ROUND 3 COMPLETION" timeLeft={displayTimeLeft} isPaused={isPaused} />;
   if (phase === "select") return <SelectionScreen imgR2={r2Img} imgR3={r3Img} onSelect={async (img) => {
     setFinalImg(img);

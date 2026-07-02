@@ -502,64 +502,258 @@ const AdminLeaderboard = () => {
       .then(res => res.json())
       .then(data => {
         if (data.success) {
-          setTeams(data.teams.filter(t => t.score > 0).sort((a, b) => b.score - a.score));
+          setTeams(data.teams.filter(t => t.score >= 0).sort((a, b) => b.score - a.score));
         }
       })
       .catch(console.error);
   }, []);
 
+  const totalTeams = teams.length;
+  const topScore = totalTeams > 0 ? teams[0].score : 0;
+  const avgScore = totalTeams > 0 ? (teams.reduce((acc, t) => acc + (t.score || 0), 0) / totalTeams) : 0;
+
   return (
-    <div className="imperial-glass imperial-panel" style={{ flex: 1, padding: 48, display: "flex", flexDirection: "column", position: "relative" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 32 }}>
-        <div style={{ fontFamily: "'Cinzel', serif", fontSize: 32, letterSpacing: 4 }} className="imperial-gold-text">FINAL LEADERBOARD</div>
+    <div className="imperial-glass imperial-panel" style={{ flex: 1, padding: "48px 56px", display: "flex", flexDirection: "column", position: "relative", overflow: "hidden", borderRadius: 20 }}>
+      {/* Background ambient glow particles */}
+      <div style={{ position: "absolute", top: -100, right: -100, width: 400, height: 400, background: "radial-gradient(circle, rgba(212,175,55,0.12) 0%, transparent 70%)", pointerEvents: "none", filter: "blur(40px)" }} />
+      <div style={{ position: "absolute", bottom: -100, left: -100, width: 400, height: 400, background: "radial-gradient(circle, rgba(0,255,200,0.08) 0%, transparent 70%)", pointerEvents: "none", filter: "blur(40px)" }} />
+
+      {/* Header & Stats Bar */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 36, borderBottom: "1px solid rgba(212,175,55,0.3)", paddingBottom: 24 }}>
+        <div>
+          <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 8 }}>
+            <span style={{ fontSize: 36 }}>👑</span>
+            <div style={{ fontFamily: "'Cinzel', serif", fontSize: 36, fontWeight: 900, letterSpacing: 5 }} className="imperial-gold-text">FINAL LEADERBOARD</div>
+          </div>
+          <div style={{ fontFamily: "'Share Tech Mono'", fontSize: 13, color: "var(--neon-cyan)", letterSpacing: 3 }}>❖ HIGH COUNCIL JUDGMENT & HALL OF IMMORTALS ❖</div>
+        </div>
+
+        {/* Live Telemetry Pill */}
+        <div style={{ display: "flex", gap: 24, background: "rgba(0,0,0,0.6)", padding: "12px 24px", borderRadius: 12, border: "1px solid rgba(212,175,55,0.3)", boxShadow: "inset 0 0 15px rgba(212,175,55,0.08)" }}>
+          <div style={{ textAlign: "center" }}>
+            <div style={{ fontSize: 10, color: "var(--text-dim)", fontFamily: "'Orbitron'", letterSpacing: 2 }}>TOTAL TEAMS</div>
+            <div style={{ fontSize: 18, color: "#fff", fontFamily: "'Orbitron'", fontWeight: "bold", marginTop: 2 }}>{totalTeams}</div>
+          </div>
+          <div style={{ width: 1, background: "rgba(255,255,255,0.1)" }} />
+          <div style={{ textAlign: "center" }}>
+            <div style={{ fontSize: 10, color: "var(--text-dim)", fontFamily: "'Orbitron'", letterSpacing: 2 }}>TOP MATCH</div>
+            <div style={{ fontSize: 18, color: "var(--neon-green)", fontFamily: "'Orbitron'", fontWeight: "bold", marginTop: 2 }}>{topScore ? topScore.toFixed(1) + "%" : "0.0%"}</div>
+          </div>
+          <div style={{ width: 1, background: "rgba(255,255,255,0.1)" }} />
+          <div style={{ textAlign: "center" }}>
+            <div style={{ fontSize: 10, color: "var(--text-dim)", fontFamily: "'Orbitron'", letterSpacing: 2 }}>AVERAGE</div>
+            <div style={{ fontSize: 18, color: "#D4AF37", fontFamily: "'Orbitron'", fontWeight: "bold", marginTop: 2 }}>{avgScore ? avgScore.toFixed(1) + "%" : "0.0%"}</div>
+          </div>
+        </div>
       </div>
       
-      <div className="custom-scrollbar" style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: 16 }}>
-        {teams.map((t, i) => (
-          <div key={t._id} onClick={() => setSelectedTeam(t)} style={{ display: "flex", alignItems: "center", gap: 24, padding: 24, background: i === 0 ? "rgba(212,175,55,0.15)" : "rgba(0,0,0,0.6)", border: i === 0 ? "1px solid rgba(212,175,55,0.8)" : "1px solid rgba(212,175,55,0.2)", cursor: "pointer", transition: "all 0.3s" }} onMouseOver={e => e.currentTarget.style.transform = "translateX(10px)"} onMouseOut={e => e.currentTarget.style.transform = "translateX(0)"}>
-            <div style={{ fontSize: 32, fontFamily: "'Cinzel', serif", color: i === 0 ? "#D4AF37" : "rgba(212,175,55,0.5)", width: 60, textAlign: "center" }}>#{i + 1}</div>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 24, fontFamily: "'Cinzel', serif", color: i === 0 ? "#D4AF37" : "#fff", letterSpacing: 2 }}>{t.name}</div>
-              <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", letterSpacing: 2, marginTop: 4 }}>TEAM {t.teamNumber}</div>
-            </div>
-            <div style={{ fontSize: 36, fontFamily: "'Orbitron'", color: i === 0 ? "var(--neon-green)" : "var(--neon-cyan)", fontWeight: "bold" }}>
-              {t.score ? t.score.toFixed(1) + "%" : "0.0%"}
-            </div>
-          </div>
-        ))}
+      {/* Leaderboard Rows */}
+      <div className="custom-scrollbar" style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: 16, paddingRight: 8 }}>
+        {teams.map((t, i) => {
+          const isGold = i === 0;
+          const isSilver = i === 1;
+          const isBronze = i === 2;
+
+          let bgStyle = "rgba(12, 14, 20, 0.75)";
+          let borderStyle = "1px solid rgba(212, 175, 55, 0.2)";
+          let shadowStyle = "0 4px 15px rgba(0,0,0,0.4)";
+          let rankBadge = `#${i + 1}`;
+          let scoreColor = "var(--neon-cyan)";
+
+          if (isGold) {
+            bgStyle = "linear-gradient(135deg, rgba(212,175,55,0.22) 0%, rgba(40,30,10,0.9) 100%)";
+            borderStyle = "2px solid #FFDF73";
+            shadowStyle = "0 10px 35px rgba(212,175,55,0.3), inset 0 0 25px rgba(212,175,55,0.15)";
+            rankBadge = "👑 1ST";
+            scoreColor = "#FFDF73";
+          } else if (isSilver) {
+            bgStyle = "linear-gradient(135deg, rgba(192,192,192,0.18) 0%, rgba(20,24,30,0.9) 100%)";
+            borderStyle = "1px solid rgba(220,230,245,0.6)";
+            shadowStyle = "0 8px 25px rgba(192,192,192,0.15)";
+            rankBadge = "🥈 2ND";
+            scoreColor = "#E0F0FF";
+          } else if (isBronze) {
+            bgStyle = "linear-gradient(135deg, rgba(205,127,50,0.18) 0%, rgba(25,18,12,0.9) 100%)";
+            borderStyle = "1px solid rgba(205,127,50,0.6)";
+            shadowStyle = "0 8px 25px rgba(205,127,50,0.15)";
+            rankBadge = "🥉 3RD";
+            scoreColor = "#FFB060";
+          }
+
+          return (
+            <motion.div 
+              key={t._id} 
+              onClick={() => setSelectedTeam(t)} 
+              whileHover={{ scale: 1.01, translateX: 8, boxShadow: "0 0 25px rgba(212,175,55,0.3)" }}
+              style={{ 
+                display: "flex", 
+                alignItems: "center", 
+                gap: 24, 
+                padding: "22px 32px", 
+                background: bgStyle, 
+                border: borderStyle, 
+                boxShadow: shadowStyle,
+                borderRadius: 14,
+                cursor: "pointer", 
+                transition: "all 0.25s ease",
+                position: "relative",
+                overflow: "hidden"
+              }}
+            >
+              {/* Corner Accents for Top 3 */}
+              {(isGold || isSilver || isBronze) && (
+                <>
+                  <div style={{ position: "absolute", top: 6, left: 6, width: 8, height: 8, borderTop: `1px solid ${scoreColor}`, borderLeft: `1px solid ${scoreColor}` }} />
+                  <div style={{ position: "absolute", bottom: 6, right: 6, width: 8, height: 8, borderBottom: `1px solid ${scoreColor}`, borderRight: `1px solid ${scoreColor}` }} />
+                </>
+              )}
+
+              <div style={{ fontSize: isGold ? 26 : 22, fontFamily: "'Orbitron', sans-serif", fontWeight: 900, color: scoreColor, width: 90, textAlign: "center", letterSpacing: 1 }}>
+                {rankBadge}
+              </div>
+
+              <div style={{ flex: 1 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                  <span style={{ fontSize: 24, fontFamily: "'Cinzel', serif", fontWeight: 700, color: "#fff", letterSpacing: 2 }}>{t.name}</span>
+                  {isGold && <span style={{ background: "linear-gradient(90deg, #D4AF37, #FFDF73)", color: "#000", fontSize: 10, fontWeight: "bold", padding: "3px 10px", borderRadius: 20, letterSpacing: 1.5, fontFamily: "'Orbitron'" }}>GRAND CHAMPION</span>}
+                </div>
+                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", fontFamily: "'Share Tech Mono'", letterSpacing: 2, marginTop: 4 }}>
+                  TEAM {t.teamNumber} • {t.player1 || "PLAYER 1"} & {t.player2 || "PLAYER 2"}
+                </div>
+              </div>
+
+              <div style={{ textAlign: "right" }}>
+                <div style={{ fontSize: 11, color: "var(--text-dim)", fontFamily: "'Orbitron'", letterSpacing: 2, marginBottom: 2 }}>SIMILARITY RATING</div>
+                <div style={{ fontSize: 36, fontFamily: "'Orbitron', sans-serif", color: scoreColor, fontWeight: 900, textShadow: isGold ? "0 0 15px rgba(255,223,115,0.6)" : "none" }}>
+                  {t.score ? t.score.toFixed(1) + "%" : "0.0%"}
+                </div>
+              </div>
+
+              <div style={{ fontSize: 20, color: "rgba(212,175,55,0.6)", paddingLeft: 12 }}>➔</div>
+            </motion.div>
+          );
+        })}
+
         {teams.length === 0 && (
-          <div style={{ textAlign: "center", padding: 100, border: "1px dashed rgba(212, 175, 55, 0.2)", color: "rgba(212, 175, 55, 0.5)", fontSize: 14, letterSpacing: 4 }}>
-            NO SUBMISSIONS YET
+          <div style={{ textAlign: "center", padding: 100, border: "1px dashed rgba(212, 175, 55, 0.25)", borderRadius: 16, background: "rgba(0,0,0,0.4)", color: "rgba(212, 175, 55, 0.6)", fontSize: 16, fontFamily: "'Cinzel', serif", letterSpacing: 4 }}>
+            ❖ THE HALL OF IMMORTALS AWAITS ITS FIRST CHALLENGER ❖
           </div>
         )}
       </div>
 
+      {/* Museum Frame Modal for Team Details */}
       <AnimatePresence>
-        {selectedTeam && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.9)", backdropFilter: "blur(10px)", zIndex: 50, display: "flex", flexDirection: "column", padding: 48 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 40 }}>
-              <div>
-                <div style={{ fontSize: 32, fontFamily: "'Cinzel', serif", color: "#D4AF37", letterSpacing: 4 }}>{selectedTeam.name}</div>
-                <div style={{ fontSize: 14, color: "var(--neon-cyan)", letterSpacing: 2 }}>SIMILARITY: {selectedTeam.score?.toFixed(1)}%</div>
-              </div>
-              <button onClick={() => setSelectedTeam(null)} className="btn-imperial-danger" style={{ padding: "12px 32px", fontSize: 12 }}>CLOSE</button>
-            </div>
-            <div style={{ display: "flex", gap: 40, flex: 1, minHeight: 0 }}>
-              <div style={{ flex: 1, display: "flex", flexDirection: "column", border: "1px solid rgba(212,175,55,0.3)", background: "rgba(0,0,0,0.5)", padding: 24 }}>
-                <div style={{ fontSize: 14, letterSpacing: 4, color: "#D4AF37", marginBottom: 24, textAlign: "center" }}>TARGET REFERENCE IMAGE</div>
-                <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  {selectedTeam.referenceImageUrl ? <img src={selectedTeam.referenceImageUrl} alt="Reference" style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain" }} /> : <div style={{ color: "var(--text-dim)" }}>NO REFERENCE</div>}
+        {selectedTeam && (() => {
+          const refImg = selectedTeam.referenceImageUrl || selectedTeam.r1Img || selectedTeam.r2Img || null;
+          const subImg = selectedTeam.finalImageUrl || selectedTeam.finalImage || selectedTeam.r3Img || selectedTeam.r2Img || selectedTeam.r1Img || null;
+          const simScore = selectedTeam.score ? selectedTeam.score.toFixed(1) : "0.0";
+
+          return (
+            <motion.div 
+              initial={{ opacity: 0 }} 
+              animate={{ opacity: 1 }} 
+              exit={{ opacity: 0 }} 
+              style={{ position: "fixed", inset: 0, background: "rgba(5, 7, 12, 0.92)", backdropFilter: "blur(20px)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 40 }}
+            >
+              <motion.div
+                initial={{ scale: 0.95, y: 20 }}
+                animate={{ scale: 1, y: 0 }}
+                exit={{ scale: 0.95, y: 20 }}
+                style={{ 
+                  width: "100%", 
+                  maxWidth: 1100, 
+                  maxHeight: "90vh", 
+                  background: "linear-gradient(180deg, rgba(16, 20, 30, 0.96) 0%, rgba(8, 10, 16, 0.98) 100%)", 
+                  border: "1px solid rgba(212,175,55,0.6)", 
+                  borderRadius: 20, 
+                  boxShadow: "0 25px 80px rgba(0,0,0,0.95), 0 0 50px rgba(212,175,55,0.2)",
+                  display: "flex", 
+                  flexDirection: "column", 
+                  padding: "40px 48px",
+                  position: "relative",
+                  overflow: "hidden"
+                }}
+              >
+                {/* Ornamental Brackets */}
+                <div style={{ position: "absolute", top: 16, left: 16, width: 24, height: 24, borderTop: "2px solid #D4AF37", borderLeft: "2px solid #D4AF37" }} />
+                <div style={{ position: "absolute", top: 16, right: 16, width: 24, height: 24, borderTop: "2px solid #D4AF37", borderRight: "2px solid #D4AF37" }} />
+                <div style={{ position: "absolute", bottom: 16, left: 16, width: 24, height: 24, borderBottom: "2px solid #D4AF37", borderLeft: "2px solid #D4AF37" }} />
+                <div style={{ position: "absolute", bottom: 16, right: 16, width: 24, height: 24, borderBottom: "2px solid #D4AF37", borderRight: "2px solid #D4AF37" }} />
+
+                {/* Modal Header */}
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 32, borderBottom: "1px solid rgba(212,175,55,0.3)", paddingBottom: 20 }}>
+                  <div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                      <span style={{ fontSize: 28 }}>🏛️</span>
+                      <span style={{ fontSize: 32, fontFamily: "'Cinzel', serif", fontWeight: 700, color: "#D4AF37", letterSpacing: 4 }}>{selectedTeam.name}</span>
+                    </div>
+                    <div style={{ fontSize: 13, fontFamily: "'Share Tech Mono'", color: "rgba(255,255,255,0.6)", letterSpacing: 2, marginTop: 4 }}>
+                      TEAM {selectedTeam.teamNumber} • {selectedTeam.player1 || "PLAYER 1"} & {selectedTeam.player2 || "PLAYER 2"}
+                    </div>
+                  </div>
+                  <button onClick={() => setSelectedTeam(null)} className="btn-imperial-danger" style={{ padding: "12px 36px", fontSize: 13, letterSpacing: 2, borderRadius: 8 }}>✕ CLOSE SANCTUM</button>
                 </div>
-              </div>
-              <div style={{ flex: 1, display: "flex", flexDirection: "column", border: "1px solid rgba(0,255,136,0.3)", background: "rgba(0,0,0,0.5)", padding: 24 }}>
-                <div style={{ fontSize: 14, letterSpacing: 4, color: "var(--neon-green)", marginBottom: 24, textAlign: "center" }}>FINAL SUBMITTED IMAGE</div>
-                <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  {selectedTeam.finalImageUrl ? <img src={selectedTeam.finalImageUrl} alt="Submitted" style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain" }} /> : <div style={{ color: "var(--text-dim)" }}>NO SUBMISSION</div>}
+
+                {/* Side by Side Museum Comparison */}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 36, flex: 1, minHeight: 340 }}>
+                  {/* Target Frame */}
+                  <div style={{ display: "flex", flexDirection: "column", background: "rgba(0,0,0,0.6)", border: "1px solid rgba(212,175,55,0.35)", borderRadius: 12, padding: 20, boxShadow: "inset 0 0 30px rgba(0,0,0,0.8)" }}>
+                    <div style={{ fontSize: 12, fontFamily: "'Orbitron'", letterSpacing: 3, color: "#D4AF37", marginBottom: 16, textAlign: "center", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+                      <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#D4AF37" }} />
+                      TARGET REFERENCE IMAGE
+                      <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#D4AF37" }} />
+                    </div>
+                    <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(5,7,10,0.9)", borderRadius: 8, border: "1px solid rgba(255,255,255,0.08)", overflow: "hidden", minHeight: 250 }}>
+                      {refImg ? (
+                        <img src={refImg} alt="Reference" style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain", borderRadius: 4, boxShadow: "0 5px 25px rgba(0,0,0,0.8)" }} />
+                      ) : (
+                        <div style={{ textAlign: "center", color: "var(--text-dim)", fontFamily: "'Orbitron'", fontSize: 13, letterSpacing: 2 }}>
+                          <div>⚠️ NO REFERENCE ARTIFACT</div>
+                          <div style={{ fontSize: 10, marginTop: 6, opacity: 0.6 }}>Original target not recorded in vault</div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Submitted Frame */}
+                  <div style={{ display: "flex", flexDirection: "column", background: "rgba(0,0,0,0.6)", border: "1px solid rgba(0,255,150,0.35)", borderRadius: 12, padding: 20, boxShadow: "inset 0 0 30px rgba(0,0,0,0.8)" }}>
+                    <div style={{ fontSize: 12, fontFamily: "'Orbitron'", letterSpacing: 3, color: "var(--neon-green)", marginBottom: 16, textAlign: "center", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+                      <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--neon-green)", boxShadow: "0 0 8px var(--neon-green)" }} />
+                      FINAL SUBMITTED SPELL
+                      <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--neon-green)", boxShadow: "0 0 8px var(--neon-green)" }} />
+                    </div>
+                    <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(5,7,10,0.9)", borderRadius: 8, border: "1px solid rgba(255,255,255,0.08)", overflow: "hidden", minHeight: 250 }}>
+                      {subImg ? (
+                        <img src={subImg} alt="Submitted" style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain", borderRadius: 4, boxShadow: "0 5px 25px rgba(0,0,0,0.8)" }} />
+                      ) : (
+                        <div style={{ textAlign: "center", color: "var(--text-dim)", fontFamily: "'Orbitron'", fontSize: 13, letterSpacing: 2 }}>
+                          <div>⚠️ NO SUBMISSION ARTIFACT</div>
+                          <div style={{ fontSize: 10, marginTop: 6, opacity: 0.6 }}>Player spell not synthesized</div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-          </motion.div>
-        )}
+
+                {/* Similarity Rating Bar */}
+                <div style={{ marginTop: 32, background: "rgba(0,0,0,0.7)", padding: "20px 28px", borderRadius: 12, border: "1px solid rgba(212,175,55,0.3)", display: "flex", alignItems: "center", gap: 24 }}>
+                  <div style={{ width: 180 }}>
+                    <div style={{ fontSize: 11, fontFamily: "'Orbitron'", color: "var(--text-dim)", letterSpacing: 2 }}>DATACRON VERDICT</div>
+                    <div style={{ fontSize: 24, fontFamily: "'Orbitron'", fontWeight: 900, color: "#D4AF37", marginTop: 2 }}>{simScore}% MATCH</div>
+                  </div>
+                  <div style={{ flex: 1, background: "rgba(255,255,255,0.1)", height: 14, borderRadius: 10, overflow: "hidden", padding: 2, border: "1px solid rgba(212,175,55,0.3)" }}>
+                    <motion.div 
+                      initial={{ width: 0 }} 
+                      animate={{ width: `${Math.min(100, Math.max(0, parseFloat(simScore)))}%` }} 
+                      transition={{ duration: 1, ease: "easeOut" }}
+                      style={{ height: "100%", background: "linear-gradient(90deg, #D4AF37, var(--neon-green))", borderRadius: 8, boxShadow: "0 0 12px rgba(212,175,55,0.8)" }} 
+                    />
+                  </div>
+                </div>
+              </motion.div>
+            </motion.div>
+          );
+        })()}
       </AnimatePresence>
     </div>
   );

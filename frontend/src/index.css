@@ -68,6 +68,12 @@ img {
   image-rendering: auto;
 }
 
+/* Ensure GDG logo renders with completely transparent background and no dark borders */
+img[src*="gdg-logo"], img[alt*="GDG"] {
+  mix-blend-mode: screen;
+  filter: drop-shadow(0 0 12px rgba(255, 255, 255, 0.2));
+}
+
 /* Selection colour */
 ::selection {
   background: rgba(200, 146, 10, 0.25);

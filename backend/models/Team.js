@@ -26,6 +26,8 @@ const teamSchema = new mongoose.Schema({
   r2Img: String,
   r3Img: String,
   finalImage: String,
+  referenceImageUrl: String,
+  finalImageUrl: String,
   phase: { type: String, default: 'register' },
   disqualifiedReason: String
 });

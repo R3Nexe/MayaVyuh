@@ -5,6 +5,7 @@ const mongoose = require('mongoose');
 const Team = require('../models/Team');
 const Session = require('../models/Session');
 const ImageBank = require('../models/ImageBank');
+const Submission = require('../models/Submission');
 
 // ============================================================
 // ANTI-CHEAT: In-memory violation store
@@ -205,7 +206,26 @@ router.delete('/admin/teams', async (req, res) => {
 router.get('/admin/leaderboard', async (req, res) => {
   try {
     const teams = await Team.find().sort({ score: -1, totalTime: 1 });
-    res.json({ success: true, teams });
+    const allImages = await ImageBank.find().sort({ teamNumber: 1 });
+    const formattedTeams = await Promise.all(teams.map(async (t) => {
+      const obj = t.toObject();
+      if (!obj.finalImageUrl) {
+        obj.finalImageUrl = obj.finalImage || obj.r3Img || obj.r2Img || obj.r1Img || null;
+      }
+      if (!obj.referenceImageUrl) {
+        const sub1 = await Submission.findOne({ team: t._id, round: 1 });
+        if (sub1 && sub1.finalImageUrl) {
+          obj.referenceImageUrl = sub1.finalImageUrl;
+        } else if (allImages.length > 0) {
+          const idx = (t.teamNumber - 1) % allImages.length;
+          obj.referenceImageUrl = allImages[idx]?.url || allImages[0]?.url;
+        } else {
+          obj.referenceImageUrl = "https://picsum.photos/seed/default/800/800";
+        }
+      }
+      return obj;
+    }));
+    res.json({ success: true, teams: formattedTeams });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

@@ -40,7 +40,13 @@ def get_embedding(image_path, model):
     Generate embedding for an image.
     """
 
-    image = Image.open(image_path).convert("RGB")
+    image = Image.open(image_path)
+    try:
+        resample = Image.Resampling.BILINEAR if hasattr(Image, 'Resampling') else Image.BILINEAR
+        image.thumbnail((512, 512), resample)
+    except Exception:
+        pass
+    image = image.convert("RGB")
 
     tensor = transform(image).unsqueeze(0).to(device)
 
