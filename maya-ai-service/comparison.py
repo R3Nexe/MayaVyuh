@@ -6,6 +6,12 @@ from sklearn.metrics.pairwise import cosine_similarity
 from model import SiameseNetwork
 
 
+try:
+    torch.set_num_threads(2)
+    torch.set_grad_enabled(False)
+except Exception:
+    pass
+
 device = torch.device(
     "cuda" if torch.cuda.is_available() else "cpu"
 )

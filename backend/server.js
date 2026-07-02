@@ -398,6 +398,38 @@ app.post('/api/similarity', async (req, res) => {
       }
     }
 
+    try {
+      const resp = await fetch('http://127.0.0.1:5001/api/similarity', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ teamId, original_url, submitted_url }),
+        signal: AbortSignal.timeout(2500)
+      });
+      if (resp.ok) {
+        const data = await resp.json();
+        if (data && data.similarity_score !== undefined) {
+          if (teamId && Team && Team.findByIdAndUpdate) {
+            try {
+              await Team.findByIdAndUpdate(teamId, { 
+                score: data.similarity_score, 
+                finalImageUrl: submitted_url,
+                referenceImageUrl: original_url
+              });
+            } catch (dbErr) {}
+            try {
+              const Submission = require('../models/Submission');
+              await Submission.findOneAndUpdate(
+                { team: teamId, round: 3 },
+                { similarityScore: data.similarity_score },
+                { sort: { timestamp: -1 } }
+              );
+            } catch (err) {}
+          }
+          return res.json(data);
+        }
+      }
+    } catch (daemonErr) {}
+
     const { execFile } = require('child_process');
     const path = require('path');
     const scriptPath = path.join(__dirname, '../maya-ai-service/runner.py');
@@ -410,7 +442,7 @@ app.post('/api/similarity', async (req, res) => {
       for (const cmd of pythonCommands) {
         try {
           await new Promise((resolve, reject) => {
-            execFile(cmd, [scriptPath, original_url, submitted_url], { maxBuffer: 1024 * 1024 * 50, timeout: 45000 }, async (error, stdout, stderr) => {
+            execFile(cmd, [scriptPath, original_url, submitted_url], { maxBuffer: 1024 * 1024 * 50, timeout: 3500 }, async (error, stdout, stderr) => {
             if (error && error.code === 'ENOENT') {
               return reject(error);
             }

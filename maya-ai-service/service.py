@@ -35,16 +35,16 @@ def get_local_path(url):
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         'Accept': 'image/webp,image/apng,image/*,*/*;q=0.8'
     }
-    for attempt in range(3):
+    for attempt in range(2):
         try:
             req = urllib.request.Request(url, headers=headers)
-            with urllib.request.urlopen(req, timeout=30, context=ctx) as response, open(tmp.name, 'wb') as out_file:
+            with urllib.request.urlopen(req, timeout=3, context=ctx) as response, open(tmp.name, 'wb') as out_file:
                 out_file.write(response.read())
             return tmp.name, tmp.name
         except Exception as e:
-            if attempt == 2:
+            if attempt == 1:
                 raise e
-            time.sleep(1.5 * (attempt + 1))
+            time.sleep(0.3)
     return tmp.name, tmp.name
 
 class SiameseRequestHandler(BaseHTTPRequestHandler):
