@@ -653,7 +653,19 @@ const AdminLeaderboard = () => {
               initial={{ opacity: 0 }} 
               animate={{ opacity: 1 }} 
               exit={{ opacity: 0 }} 
-              style={{ position: "fixed", inset: 0, background: "rgba(5, 7, 12, 0.92)", backdropFilter: "blur(20px)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 40 }}
+              style={{ 
+                position: "fixed", 
+                inset: 0, 
+                background: "rgba(5, 7, 12, 0.92)", 
+                backdropFilter: "blur(20px)", 
+                zIndex: 1000, 
+                display: "flex", 
+                alignItems: "center", 
+                justifyContent: "center", 
+                padding: "20px",
+                overflowY: "auto"
+              }}
+              onClick={(e) => { if (e.target === e.currentTarget) setSelectedTeam(null); }}
             >
               <motion.div
                 initial={{ scale: 0.95, y: 20 }}
@@ -662,92 +674,95 @@ const AdminLeaderboard = () => {
                 style={{ 
                   width: "100%", 
                   maxWidth: 1100, 
-                  maxHeight: "90vh", 
+                  maxHeight: "calc(100vh - 40px)",
                   background: "linear-gradient(180deg, rgba(16, 20, 30, 0.96) 0%, rgba(8, 10, 16, 0.98) 100%)", 
                   border: "1px solid rgba(212,175,55,0.6)", 
                   borderRadius: 20, 
                   boxShadow: "0 25px 80px rgba(0,0,0,0.95), 0 0 50px rgba(212,175,55,0.2)",
                   display: "flex", 
                   flexDirection: "column", 
-                  padding: "40px 48px",
+                  padding: "28px 32px",
                   position: "relative",
                   overflow: "hidden"
                 }}
               >
                 {/* Ornamental Brackets */}
-                <div style={{ position: "absolute", top: 16, left: 16, width: 24, height: 24, borderTop: "2px solid #D4AF37", borderLeft: "2px solid #D4AF37" }} />
-                <div style={{ position: "absolute", top: 16, right: 16, width: 24, height: 24, borderTop: "2px solid #D4AF37", borderRight: "2px solid #D4AF37" }} />
-                <div style={{ position: "absolute", bottom: 16, left: 16, width: 24, height: 24, borderBottom: "2px solid #D4AF37", borderLeft: "2px solid #D4AF37" }} />
-                <div style={{ position: "absolute", bottom: 16, right: 16, width: 24, height: 24, borderBottom: "2px solid #D4AF37", borderRight: "2px solid #D4AF37" }} />
+                <div style={{ position: "absolute", top: 12, left: 12, width: 20, height: 20, borderTop: "2px solid #D4AF37", borderLeft: "2px solid #D4AF37", pointerEvents: "none" }} />
+                <div style={{ position: "absolute", top: 12, right: 12, width: 20, height: 20, borderTop: "2px solid #D4AF37", borderRight: "2px solid #D4AF37", pointerEvents: "none" }} />
+                <div style={{ position: "absolute", bottom: 12, left: 12, width: 20, height: 20, borderBottom: "2px solid #D4AF37", borderLeft: "2px solid #D4AF37", pointerEvents: "none" }} />
+                <div style={{ position: "absolute", bottom: 12, right: 12, width: 20, height: 20, borderBottom: "2px solid #D4AF37", borderRight: "2px solid #D4AF37", pointerEvents: "none" }} />
 
                 {/* Modal Header */}
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 32, borderBottom: "1px solid rgba(212,175,55,0.3)", paddingBottom: 20 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20, borderBottom: "1px solid rgba(212,175,55,0.3)", paddingBottom: 16, flexShrink: 0 }}>
                   <div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                      <span style={{ fontSize: 28 }}>🏛️</span>
-                      <span style={{ fontSize: 32, fontFamily: "'Cinzel', serif", fontWeight: 700, color: "#D4AF37", letterSpacing: 4 }}>{selectedTeam.name}</span>
+                    <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+                      <span style={{ fontSize: 24 }}>🏛️</span>
+                      <span style={{ fontSize: 28, fontFamily: "'Cinzel', serif", fontWeight: 700, color: "#D4AF37", letterSpacing: 3 }}>{selectedTeam.name}</span>
                     </div>
-                    <div style={{ fontSize: 13, fontFamily: "'Share Tech Mono'", color: "rgba(255,255,255,0.6)", letterSpacing: 2, marginTop: 4 }}>
+                    <div style={{ fontSize: 12, fontFamily: "'Share Tech Mono'", color: "rgba(255,255,255,0.6)", letterSpacing: 2, marginTop: 4 }}>
                       TEAM {selectedTeam.teamNumber} • {selectedTeam.player1 || "PLAYER 1"} & {selectedTeam.player2 || "PLAYER 2"}
                     </div>
                   </div>
-                  <button onClick={() => setSelectedTeam(null)} className="btn-imperial-danger" style={{ padding: "12px 36px", fontSize: 13, letterSpacing: 2, borderRadius: 8 }}>✕ CLOSE SANCTUM</button>
+                  <button onClick={() => setSelectedTeam(null)} className="btn-imperial-danger" style={{ padding: "10px 24px", fontSize: 12, letterSpacing: 2, borderRadius: 8, flexShrink: 0 }}>✕ CLOSE</button>
                 </div>
 
-                {/* Side by Side Museum Comparison */}
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 36, flex: 1, minHeight: 340 }}>
-                  {/* Target Frame */}
-                  <div style={{ display: "flex", flexDirection: "column", background: "rgba(0,0,0,0.6)", border: "1px solid rgba(212,175,55,0.35)", borderRadius: 12, padding: 20, boxShadow: "inset 0 0 30px rgba(0,0,0,0.8)" }}>
-                    <div style={{ fontSize: 12, fontFamily: "'Orbitron'", letterSpacing: 3, color: "#D4AF37", marginBottom: 16, textAlign: "center", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
-                      <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#D4AF37" }} />
-                      TARGET REFERENCE IMAGE
-                      <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#D4AF37" }} />
+                {/* Scrollable Modal Content Area for All Screen Ratios */}
+                <div className="custom-scrollbar" style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: 24, paddingRight: 6 }}>
+                  {/* Side by Side Museum Comparison (Responsive Grid) */}
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 24 }}>
+                    {/* Target Frame */}
+                    <div style={{ display: "flex", flexDirection: "column", background: "rgba(0,0,0,0.6)", border: "1px solid rgba(212,175,55,0.35)", borderRadius: 12, padding: 16, boxShadow: "inset 0 0 30px rgba(0,0,0,0.8)" }}>
+                      <div style={{ fontSize: 11, fontFamily: "'Orbitron'", letterSpacing: 2, color: "#D4AF37", marginBottom: 12, textAlign: "center", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+                        <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#D4AF37" }} />
+                        TARGET REFERENCE IMAGE
+                        <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#D4AF37" }} />
+                      </div>
+                      <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(5,7,10,0.9)", borderRadius: 8, border: "1px solid rgba(255,255,255,0.08)", overflow: "hidden", minHeight: 200, maxHeight: "40vh" }}>
+                        {refImg ? (
+                          <img src={refImg} alt="Reference" style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain", borderRadius: 4, boxShadow: "0 5px 25px rgba(0,0,0,0.8)" }} />
+                        ) : (
+                          <div style={{ textAlign: "center", color: "var(--text-dim)", fontFamily: "'Orbitron'", fontSize: 12, letterSpacing: 2, padding: 20 }}>
+                            <div>⚠️ NO REFERENCE ARTIFACT</div>
+                            <div style={{ fontSize: 10, marginTop: 6, opacity: 0.6 }}>Original target not recorded in vault</div>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                    <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(5,7,10,0.9)", borderRadius: 8, border: "1px solid rgba(255,255,255,0.08)", overflow: "hidden", minHeight: 250 }}>
-                      {refImg ? (
-                        <img src={refImg} alt="Reference" style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain", borderRadius: 4, boxShadow: "0 5px 25px rgba(0,0,0,0.8)" }} />
-                      ) : (
-                        <div style={{ textAlign: "center", color: "var(--text-dim)", fontFamily: "'Orbitron'", fontSize: 13, letterSpacing: 2 }}>
-                          <div>⚠️ NO REFERENCE ARTIFACT</div>
-                          <div style={{ fontSize: 10, marginTop: 6, opacity: 0.6 }}>Original target not recorded in vault</div>
-                        </div>
-                      )}
+
+                    {/* Submitted Frame */}
+                    <div style={{ display: "flex", flexDirection: "column", background: "rgba(0,0,0,0.6)", border: "1px solid rgba(0,255,150,0.35)", borderRadius: 12, padding: 16, boxShadow: "inset 0 0 30px rgba(0,0,0,0.8)" }}>
+                      <div style={{ fontSize: 11, fontFamily: "'Orbitron'", letterSpacing: 2, color: "var(--neon-green)", marginBottom: 12, textAlign: "center", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+                        <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--neon-green)", boxShadow: "0 0 8px var(--neon-green)" }} />
+                        FINAL SUBMITTED SPELL
+                        <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--neon-green)", boxShadow: "0 0 8px var(--neon-green)" }} />
+                      </div>
+                      <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(5,7,10,0.9)", borderRadius: 8, border: "1px solid rgba(255,255,255,0.08)", overflow: "hidden", minHeight: 200, maxHeight: "40vh" }}>
+                        {subImg ? (
+                          <img src={subImg} alt="Submitted" style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain", borderRadius: 4, boxShadow: "0 5px 25px rgba(0,0,0,0.8)" }} />
+                        ) : (
+                          <div style={{ textAlign: "center", color: "var(--text-dim)", fontFamily: "'Orbitron'", fontSize: 12, letterSpacing: 2, padding: 20 }}>
+                            <div>⚠️ NO SUBMISSION ARTIFACT</div>
+                            <div style={{ fontSize: 10, marginTop: 6, opacity: 0.6 }}>Player spell not synthesized</div>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
 
-                  {/* Submitted Frame */}
-                  <div style={{ display: "flex", flexDirection: "column", background: "rgba(0,0,0,0.6)", border: "1px solid rgba(0,255,150,0.35)", borderRadius: 12, padding: 20, boxShadow: "inset 0 0 30px rgba(0,0,0,0.8)" }}>
-                    <div style={{ fontSize: 12, fontFamily: "'Orbitron'", letterSpacing: 3, color: "var(--neon-green)", marginBottom: 16, textAlign: "center", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
-                      <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--neon-green)", boxShadow: "0 0 8px var(--neon-green)" }} />
-                      FINAL SUBMITTED SPELL
-                      <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--neon-green)", boxShadow: "0 0 8px var(--neon-green)" }} />
+                  {/* Similarity Rating Bar */}
+                  <div style={{ background: "rgba(0,0,0,0.7)", padding: "16px 24px", borderRadius: 12, border: "1px solid rgba(212,175,55,0.3)", display: "flex", alignItems: "center", gap: 20, flexWrap: "wrap" }}>
+                    <div style={{ minWidth: 160 }}>
+                      <div style={{ fontSize: 10, fontFamily: "'Orbitron'", color: "var(--text-dim)", letterSpacing: 2 }}>DATACRON VERDICT</div>
+                      <div style={{ fontSize: 22, fontFamily: "'Orbitron'", fontWeight: 900, color: "#D4AF37", marginTop: 2 }}>{simScore}% MATCH</div>
                     </div>
-                    <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(5,7,10,0.9)", borderRadius: 8, border: "1px solid rgba(255,255,255,0.08)", overflow: "hidden", minHeight: 250 }}>
-                      {subImg ? (
-                        <img src={subImg} alt="Submitted" style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain", borderRadius: 4, boxShadow: "0 5px 25px rgba(0,0,0,0.8)" }} />
-                      ) : (
-                        <div style={{ textAlign: "center", color: "var(--text-dim)", fontFamily: "'Orbitron'", fontSize: 13, letterSpacing: 2 }}>
-                          <div>⚠️ NO SUBMISSION ARTIFACT</div>
-                          <div style={{ fontSize: 10, marginTop: 6, opacity: 0.6 }}>Player spell not synthesized</div>
-                        </div>
-                      )}
+                    <div style={{ flex: "1 1 200px", background: "rgba(255,255,255,0.1)", height: 14, borderRadius: 10, overflow: "hidden", padding: 2, border: "1px solid rgba(212,175,55,0.3)" }}>
+                      <motion.div 
+                        initial={{ width: 0 }} 
+                        animate={{ width: `${Math.min(100, Math.max(0, parseFloat(simScore)))}%` }} 
+                        transition={{ duration: 1, ease: "easeOut" }}
+                        style={{ height: "100%", background: "linear-gradient(90deg, #D4AF37, var(--neon-green))", borderRadius: 8, boxShadow: "0 0 12px rgba(212,175,55,0.8)" }} 
+                      />
                     </div>
-                  </div>
-                </div>
-
-                {/* Similarity Rating Bar */}
-                <div style={{ marginTop: 32, background: "rgba(0,0,0,0.7)", padding: "20px 28px", borderRadius: 12, border: "1px solid rgba(212,175,55,0.3)", display: "flex", alignItems: "center", gap: 24 }}>
-                  <div style={{ width: 180 }}>
-                    <div style={{ fontSize: 11, fontFamily: "'Orbitron'", color: "var(--text-dim)", letterSpacing: 2 }}>DATACRON VERDICT</div>
-                    <div style={{ fontSize: 24, fontFamily: "'Orbitron'", fontWeight: 900, color: "#D4AF37", marginTop: 2 }}>{simScore}% MATCH</div>
-                  </div>
-                  <div style={{ flex: 1, background: "rgba(255,255,255,0.1)", height: 14, borderRadius: 10, overflow: "hidden", padding: 2, border: "1px solid rgba(212,175,55,0.3)" }}>
-                    <motion.div 
-                      initial={{ width: 0 }} 
-                      animate={{ width: `${Math.min(100, Math.max(0, parseFloat(simScore)))}%` }} 
-                      transition={{ duration: 1, ease: "easeOut" }}
-                      style={{ height: "100%", background: "linear-gradient(90deg, #D4AF37, var(--neon-green))", borderRadius: 8, boxShadow: "0 0 12px rgba(212,175,55,0.8)" }} 
-                    />
                   </div>
                 </div>
               </motion.div>
