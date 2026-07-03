@@ -493,6 +493,275 @@ const ImageVaultSection = () => {
   );
 };
 
+const ApiLogsPanel = () => {
+  const [logs, setLogs] = useState([]);
+  const [filter, setFilter] = useState("ALL");
+  const [expandedId, setExpandedId] = useState(null);
+  const scrollRef = useRef(null);
+
+  const fetchLogs = async () => {
+    try {
+      const res = await fetch(`${API}/api/admin/logs?limit=200`);
+      const data = await res.json();
+      if (data.success && Array.isArray(data.logs)) setLogs(data.logs);
+    } catch (err) { /* silent */ }
+  };
+
+  useEffect(() => {
+    fetchLogs();
+    const interval = setInterval(fetchLogs, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const clearLogs = async () => {
+    try {
+      await fetch(`${API}/api/admin/logs`, { method: "DELETE" });
+      setLogs([]);
+    } catch (err) { console.error(err); }
+  };
+
+  const filteredLogs = logs.filter(l => {
+    if (filter === "SIMILARITY") return l.category === "similarity";
+    if (filter === "ERRORS") return l.statusCode >= 400 || l.similarityStatus === "FAIL" || l.similarityStatus === "ERROR";
+    return true;
+  });
+
+  const methodColor = (m) => {
+    if (m === "GET") return "#00ff88";
+    if (m === "POST") return "#00b4ff";
+    if (m === "DELETE") return "#ff2a2a";
+    if (m === "PUT") return "#D4AF37";
+    return "#a99d86";
+  };
+
+  const statusColor = (code) => {
+    if (code >= 500) return "#ff2a2a";
+    if (code >= 400) return "#ff8c00";
+    return "#00ff88";
+  };
+
+  const simStatusColor = (s) => {
+    if (s === "PASS") return "#00ff88";
+    if (s === "FAIL") return "#ff8c00";
+    if (s === "ERROR") return "#ff2a2a";
+    return "#a99d86";
+  };
+
+  const fmtTs = (iso) => {
+    try { return new Date(iso).toLocaleTimeString("en-US", { hour12: false }); }
+    catch { return iso; }
+  };
+
+  const totalSim = logs.filter(l => l.category === "similarity").length;
+  const passCount = logs.filter(l => l.similarityStatus === "PASS").length;
+  const failCount = logs.filter(l => l.similarityStatus === "FAIL" || l.similarityStatus === "ERROR").length;
+
+  const filterBtns = [
+    { id: "ALL", label: "ALL LOGS" },
+    { id: "SIMILARITY", label: "SIMILARITY" },
+    { id: "ERRORS", label: "ERRORS" },
+  ];
+
+  return (
+    <div className="imperial-glass imperial-panel" style={{ padding: 32, marginTop: 8, display: "flex", flexDirection: "column" }}>
+      {/* Header */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20, borderBottom: "1px dashed rgba(0, 243, 255, 0.25)", paddingBottom: 16, flexWrap: "wrap", gap: 12 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <Network size={18} color="#00f3ff" />
+          <span style={{ fontSize: 14, letterSpacing: 4, color: "#00f3ff", fontFamily: "'Orbitron', sans-serif" }}>API CALL LOGS</span>
+          <span style={{ fontSize: 10, color: "rgba(0, 243, 255, 0.5)", letterSpacing: 2 }}>— AUTO-REFRESHES EVERY 5s</span>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+          {/* Stats pills */}
+          <div style={{ display: "flex", gap: 8 }}>
+            <span style={{ fontSize: 9, padding: "3px 10px", background: "rgba(0,0,0,0.6)", border: "1px solid rgba(0,243,255,0.3)", color: "#00f3ff", letterSpacing: 1.5, fontFamily: "'Orbitron', sans-serif" }}>
+              {logs.length} TOTAL
+            </span>
+            {totalSim > 0 && (
+              <>
+                <span style={{ fontSize: 9, padding: "3px 10px", background: "rgba(0,255,136,0.05)", border: "1px solid rgba(0,255,136,0.3)", color: "#00ff88", letterSpacing: 1.5, fontFamily: "'Orbitron', sans-serif" }}>
+                  {passCount} PASS
+                </span>
+                <span style={{ fontSize: 9, padding: "3px 10px", background: "rgba(255,42,42,0.05)", border: "1px solid rgba(255,42,42,0.3)", color: "#ff2a2a", letterSpacing: 1.5, fontFamily: "'Orbitron', sans-serif" }}>
+                  {failCount} FAIL
+                </span>
+              </>
+            )}
+          </div>
+          {/* Filters */}
+          <div style={{ display: "flex", gap: 4 }}>
+            {filterBtns.map(fb => (
+              <button
+                key={fb.id}
+                onClick={() => setFilter(fb.id)}
+                style={{
+                  padding: "5px 14px", fontSize: 9, letterSpacing: 2,
+                  background: filter === fb.id ? "rgba(0, 243, 255, 0.12)" : "rgba(0,0,0,0.4)",
+                  border: filter === fb.id ? "1px solid rgba(0, 243, 255, 0.6)" : "1px solid rgba(255,255,255,0.1)",
+                  color: filter === fb.id ? "#00f3ff" : "rgba(255,255,255,0.5)",
+                  cursor: "pointer", fontFamily: "'Orbitron', sans-serif",
+                  transition: "all 0.2s",
+                }}
+              >
+                {fb.label}
+              </button>
+            ))}
+          </div>
+          <button onClick={clearLogs} style={{ padding: "5px 14px", fontSize: 9, letterSpacing: 2, background: "rgba(255,42,42,0.08)", border: "1px solid rgba(255,42,42,0.3)", color: "#ff2a2a", cursor: "pointer", fontFamily: "'Orbitron', sans-serif", transition: "all 0.2s" }}>
+            CLEAR LOGS
+          </button>
+        </div>
+      </div>
+
+      {/* Log Entries */}
+      <div ref={scrollRef} className="custom-scrollbar" style={{ maxHeight: 420, overflowY: "auto", display: "flex", flexDirection: "column", gap: 2 }}>
+        {filteredLogs.length === 0 && (
+          <div style={{ textAlign: "center", padding: 60, color: "rgba(0, 243, 255, 0.3)", fontSize: 12, letterSpacing: 4, fontFamily: "'Orbitron', sans-serif", border: "1px dashed rgba(0, 243, 255, 0.15)" }}>
+            NO LOG ENTRIES {filter !== "ALL" ? `MATCHING "${filter}"` : "YET"}
+          </div>
+        )}
+        {filteredLogs.map((log) => {
+          const isSim = log.category === "similarity" && log.similarityStatus;
+          const isExpanded = expandedId === log.id;
+          const leftBorderColor = isSim
+            ? (log.similarityStatus === "PASS" ? "#00ff88" : "#ff2a2a")
+            : "rgba(212, 175, 55, 0.3)";
+
+          return (
+            <div key={log.id}>
+              <div
+                onClick={() => isSim && setExpandedId(isExpanded ? null : log.id)}
+                style={{
+                  display: "flex", alignItems: "center", gap: 14, padding: "10px 16px",
+                  background: isSim ? "rgba(0,0,0,0.55)" : "rgba(0,0,0,0.4)",
+                  borderLeft: `3px solid ${leftBorderColor}`,
+                  borderBottom: "1px solid rgba(255,255,255,0.03)",
+                  cursor: isSim ? "pointer" : "default",
+                  transition: "background 0.2s",
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(0,0,0,0.7)"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = isSim ? "rgba(0,0,0,0.55)" : "rgba(0,0,0,0.4)"; }}
+              >
+                {/* Timestamp */}
+                <span style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", fontFamily: "'Share Tech Mono', monospace", letterSpacing: 1, minWidth: 70 }}>
+                  {fmtTs(log.timestamp)}
+                </span>
+
+                {/* Method Badge */}
+                <span style={{
+                  fontSize: 9, fontWeight: "bold", padding: "2px 8px",
+                  background: `${methodColor(log.method)}15`,
+                  border: `1px solid ${methodColor(log.method)}50`,
+                  color: methodColor(log.method),
+                  letterSpacing: 1.5, fontFamily: "'Orbitron', sans-serif",
+                  minWidth: 50, textAlign: "center",
+                }}>
+                  {log.method}
+                </span>
+
+                {/* Path */}
+                <span style={{ fontSize: 11, color: "rgba(255,255,255,0.7)", fontFamily: "'Share Tech Mono', monospace", letterSpacing: 0.5, flex: 1 }}>
+                  {log.path}
+                </span>
+
+                {/* Similarity Status Badge (for sim calls) */}
+                {isSim && (
+                  <span style={{
+                    fontSize: 9, padding: "2px 10px", fontWeight: "bold",
+                    background: `${simStatusColor(log.similarityStatus)}12`,
+                    border: `1px solid ${simStatusColor(log.similarityStatus)}60`,
+                    color: simStatusColor(log.similarityStatus),
+                    letterSpacing: 2, fontFamily: "'Orbitron', sans-serif",
+                  }}>
+                    {log.similarityStatus}
+                  </span>
+                )}
+
+                {/* Score (for sim calls) */}
+                {isSim && log.similarityScore !== undefined && (
+                  <span style={{ fontSize: 11, color: simStatusColor(log.similarityStatus), fontFamily: "'Orbitron', sans-serif", fontWeight: "bold", minWidth: 55, textAlign: "right" }}>
+                    {Number(log.similarityScore).toFixed(1)}%
+                  </span>
+                )}
+
+                {/* Status Code */}
+                <span style={{
+                  fontSize: 10, fontWeight: "bold",
+                  color: statusColor(log.statusCode),
+                  fontFamily: "'Orbitron', sans-serif",
+                  minWidth: 30, textAlign: "center",
+                }}>
+                  {log.statusCode}
+                </span>
+
+                {/* Duration */}
+                <span style={{ fontSize: 9, color: "rgba(255,255,255,0.3)", fontFamily: "'Share Tech Mono', monospace", letterSpacing: 1, minWidth: 55, textAlign: "right" }}>
+                  {log.durationMs}ms
+                </span>
+
+                {/* Expand indicator for sim logs */}
+                {isSim && (
+                  <span style={{ fontSize: 10, color: "rgba(0, 243, 255, 0.5)", transition: "transform 0.2s", transform: isExpanded ? "rotate(90deg)" : "rotate(0deg)" }}>▶</span>
+                )}
+              </div>
+
+              {/* Expanded detail for similarity calls */}
+              <AnimatePresence>
+                {isSim && isExpanded && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    style={{ overflow: "hidden" }}
+                  >
+                    <div style={{
+                      padding: "12px 16px 12px 32px",
+                      background: "rgba(0,0,0,0.7)",
+                      borderLeft: `3px solid ${leftBorderColor}`,
+                      borderBottom: "1px solid rgba(255,255,255,0.05)",
+                      display: "grid", gridTemplateColumns: "120px 1fr", gap: "6px 16px", fontSize: 10,
+                    }}>
+                      <span style={{ color: "rgba(212,175,55,0.7)", letterSpacing: 2, fontFamily: "'Orbitron', sans-serif" }}>SOURCE</span>
+                      <span style={{ color: "#00f3ff", fontFamily: "'Share Tech Mono', monospace" }}>{log.source || "N/A"}</span>
+
+                      <span style={{ color: "rgba(212,175,55,0.7)", letterSpacing: 2, fontFamily: "'Orbitron', sans-serif" }}>TEAM ID</span>
+                      <span style={{ color: "rgba(255,255,255,0.6)", fontFamily: "'Share Tech Mono', monospace", wordBreak: "break-all" }}>{log.teamId || "N/A"}</span>
+
+                      <span style={{ color: "rgba(212,175,55,0.7)", letterSpacing: 2, fontFamily: "'Orbitron', sans-serif" }}>FALLBACK</span>
+                      <span style={{ color: log.fallbackMode ? "#ff8c00" : "#00ff88", fontFamily: "'Orbitron', sans-serif", fontWeight: "bold" }}>{log.fallbackMode ? "YES" : "NO"}</span>
+
+                      {log.error && (
+                        <>
+                          <span style={{ color: "#ff2a2a", letterSpacing: 2, fontFamily: "'Orbitron', sans-serif" }}>ERROR</span>
+                          <span style={{ color: "#ff6b6b", fontFamily: "'Share Tech Mono', monospace", wordBreak: "break-all" }}>{log.error}</span>
+                        </>
+                      )}
+
+                      {log.originalUrl && (
+                        <>
+                          <span style={{ color: "rgba(212,175,55,0.7)", letterSpacing: 2, fontFamily: "'Orbitron', sans-serif" }}>REFERENCE</span>
+                          <span style={{ color: "rgba(255,255,255,0.4)", fontFamily: "'Share Tech Mono', monospace", wordBreak: "break-all", fontSize: 9 }}>{log.originalUrl}</span>
+                        </>
+                      )}
+
+                      {log.submittedUrl && (
+                        <>
+                          <span style={{ color: "rgba(212,175,55,0.7)", letterSpacing: 2, fontFamily: "'Orbitron', sans-serif" }}>SUBMITTED</span>
+                          <span style={{ color: "rgba(255,255,255,0.4)", fontFamily: "'Share Tech Mono', monospace", wordBreak: "break-all", fontSize: 9 }}>{log.submittedUrl}</span>
+                        </>
+                      )}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
 const AdminLeaderboard = () => {
   const [teams, setTeams] = useState([]);
   const [selectedTeam, setSelectedTeam] = useState(null);
@@ -1057,6 +1326,9 @@ export const AdminDashboard = ({ teams, setTeams, eventState, setEventState }) =
                 </div>
               </div>
             )}
+
+            {/* ── API CALL LOGS PANEL ── */}
+            <ApiLogsPanel />
           </motion.div>
         );
 

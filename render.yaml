@@ -24,3 +24,9 @@ services:
         sync: false
       - key: AWS_S3_Bucket_name
         value: "mayavyuh-images-4827-131404648287-eu-north-1-an"
+
+
+
+python runner.py s3://mayavyuh-images-4827-131404648287-eu-north-1-an/reference/team_4.png s3://mayavyuh-images-4827-131404648287-eu-north-1-an/submissions/FHTN/round3.jpeg
+
+s3://mayavyuh-images-4827-131404648287-eu-north-1-an/reference/team_4.png  s3://mayavyuh-images-4827-131404648287-eu-north-1-an/submissions/FHTN/round3.jpeg
