@@ -428,7 +428,11 @@ app.post('/api/similarity', async (req, res) => {
 
     if (process.env.AI_SERVICE_URL) {
       try {
-        const response = await fetch(`${process.env.AI_SERVICE_URL}/api/similarity`, {
+        let aiServiceUrl = process.env.AI_SERVICE_URL;
+        if (!aiServiceUrl.startsWith('http')) {
+          aiServiceUrl = `https://${aiServiceUrl}`;
+        }
+        const response = await fetch(`${aiServiceUrl}/api/similarity`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ teamId, original_url, submitted_url })
