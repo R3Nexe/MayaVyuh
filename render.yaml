@@ -1,10 +1,7 @@
 services:
   - type: web
     name: mayavyuh-backend
-    env: node
-    rootDir: backend
-    buildCommand: npm install
-    startCommand: npm start
+    env: docker
     envVars:
       - key: PORT
         value: 10000
@@ -12,11 +9,6 @@ services:
         sync: false
       - key: OPENAI_API_KEY
         sync: false
-      - key: AI_SERVICE_URL
-        fromService:
-          name: mayavyuh-ai
-          type: web
-          property: host
       - key: AWS_ACCESS_KEY_ID
         sync: false
       - key: AWS_SECRET_ACCESS_KEY
@@ -27,13 +19,3 @@ services:
         sync: false
       - key: AWS_S3_Bucket_name
         value: "mayavyuh-images-4827-131404648287-eu-north-1-an"
-
-  - type: web
-    name: mayavyuh-ai
-    env: python
-    rootDir: maya-ai-service
-    buildCommand: pip install -r requirements.txt
-    startCommand: python service.py 10000
-    envVars:
-      - key: PORT
-        value: 10000
