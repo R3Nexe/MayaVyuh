@@ -5,7 +5,7 @@ import { Shield, User, Users, Crosshair } from "lucide-react";
 import { broadcastEvent, useEventListener } from "./useSync.js";
 import { AdminDashboard, SceneWrapper, GlobalStyles, BG_IMAGES } from "./AdminComponents.jsx";
 import gdgLogo from "./assets/gdg-logo.png";
-const API = import.meta.env.VITE_API_URL || "https://mayavyuh-backend.onrender.com";
+const API = import.meta.env.VITE_API_URL || "https://mayavyuh.onrender.com";
 const INIT_TEAMS = [];
 const INIT_EVENT = { started: false, phase: "lobby" };
 
