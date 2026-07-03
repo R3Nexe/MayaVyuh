@@ -27,6 +27,11 @@ def main():
         
         import time
         def get_local_path(url):
+            if url.startswith("s3://"):
+                parts = url.replace("s3://", "https://", 1).split("/", 3)
+                if len(parts) >= 4:
+                    url = f"https://{parts[2]}.s3.amazonaws.com/{parts[3]}"
+
             if os.path.exists(url):
                 return url, None
             tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".jpg")
