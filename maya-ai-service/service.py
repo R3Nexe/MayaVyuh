@@ -6,23 +6,36 @@ import tempfile
 import concurrent.futures
 from http.server import HTTPServer, BaseHTTPRequestHandler
 import ssl
+import numpy as np
+from PIL import Image
+
+try:
+    import onnxruntime as ort
+except ImportError:
+    print("FATAL ERROR: onnxruntime not installed")
+    sys.exit(1)
 
 # Ensure local directory is in path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-from comparison import load_model, compare_images
 
-print("🚀 [Maya AI Service] Loading ResNet50 Siamese Model into memory...")
-model_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "saved_models/siamese_model.pth")
-model = load_model(model_path)
-print("✅ [Maya AI Service] Siamese Model loaded successfully! Ready for high-speed evaluations.")
+print("🚀 [Maya AI Service] Loading ONNX Siamese Model into memory (Lightweight inference)...")
+model_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "saved_models/siamese_model.onnx")
+
+if not os.path.exists(model_path):
+    print(f"FATAL ERROR: ONNX model not found at {model_path}")
+    sys.exit(1)
+
+sess = ort.InferenceSession(model_path)
+input_name1 = sess.get_inputs()[0].name
+input_name2 = sess.get_inputs()[1].name
+print("✅ [Maya AI Service] ONNX Model loaded successfully! Fast lightweight inference ready.")
 
 ctx = ssl.create_default_context()
 ctx.check_hostname = False
 ctx.verify_mode = ssl.CERT_NONE
 
-# ThreadPoolExecutor to handle concurrent image downloads without blocking inference
 download_pool = concurrent.futures.ThreadPoolExecutor(max_workers=16)
-# Semaphore to limit simultaneous GPU/CPU PyTorch evaluations so memory never overflows with 100+ players
+
 import threading
 inference_lock = threading.Semaphore(4)
 
@@ -52,6 +65,16 @@ def get_local_path(url):
             time.sleep(0.3)
     return tmp.name, tmp.name
 
+def preprocess(image_path):
+    img = Image.open(image_path).convert('RGB')
+    img = img.resize((224, 224), Image.Resampling.LANCZOS)
+    img_data = np.array(img).astype(np.float32) / 255.0
+    mean = np.array([0.485, 0.456, 0.406], dtype=np.float32)
+    std = np.array([0.229, 0.224, 0.225], dtype=np.float32)
+    img_data = (img_data - mean) / std
+    img_data = np.transpose(img_data, (2, 0, 1))
+    return np.expand_dims(img_data, axis=0)
+
 class SiameseRequestHandler(BaseHTTPRequestHandler):
     def do_POST(self):
         if self.path == '/api/similarity':
@@ -75,11 +98,13 @@ class SiameseRequestHandler(BaseHTTPRequestHandler):
                 path1, tmp1_path = future1.result()
                 path2, tmp2_path = future2.result()
                 
-                # Evaluate using loaded model under concurrency lock
                 with inference_lock:
-                    score = compare_images(path1, tmp2_path or path2, model)
+                    img1 = preprocess(path1)
+                    img2 = preprocess(tmp2_path or path2)
+                    out1, out2 = sess.run(None, {input_name1: img1, input_name2: img2})
+                    similarity = np.dot(out1[0], out2[0]) / (np.linalg.norm(out1[0]) * np.linalg.norm(out2[0]))
+                    score = ((float(similarity) + 1.0) / 2.0) * 100.0
                 
-                # Cleanup temporary images
                 if tmp1_path and os.path.exists(tmp1_path):
                     try: os.remove(tmp1_path)
                     except: pass
@@ -90,7 +115,7 @@ class SiameseRequestHandler(BaseHTTPRequestHandler):
                 self.send_response(200)
                 self.send_header('Content-Type', 'application/json')
                 self.end_headers()
-                self.wfile.write(json.dumps({"similarity_score": float(score)}).encode())
+                self.wfile.write(json.dumps({"similarity_score": score}).encode())
                 
             except Exception as e:
                 import traceback
@@ -104,14 +129,12 @@ class SiameseRequestHandler(BaseHTTPRequestHandler):
             self.end_headers()
 
     def log_message(self, format, *args):
-        # Suppress routine log clutter
         pass
 
 def run(server_class=HTTPServer, handler_class=SiameseRequestHandler, port=5001):
     server_address = ('0.0.0.0', port)
     httpd = server_class(server_address, handler_class)
     print(f"🌐 [Maya AI Service] Standalone Microservice running on http://0.0.0.0:{port}/api/similarity")
-    print("💡 To use this in Node.js backend, set environment variable: AI_SERVICE_URL=http://localhost:5001")
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:

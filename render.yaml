@@ -3,7 +3,7 @@ services:
     name: mayavyuh-backend
     env: node
     rootDir: backend
-    buildCommand: "npm install && pip install --no-cache-dir torch==2.12.1+cpu torchvision==0.27.1+cpu --index-url https://download.pytorch.org/whl/cpu && pip install --no-cache-dir opencv-python-headless numpy scikit-image Pillow scikit-learn"
+    buildCommand: "npm install && pip install --no-cache-dir onnxruntime numpy Pillow"
     startCommand: npm start
     envVars:
       - key: PORT
