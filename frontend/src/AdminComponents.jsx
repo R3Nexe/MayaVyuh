@@ -11,9 +11,9 @@ import bg4 from "./assets/bg-4.jpg";
 import bg5 from "./assets/bg-5.jpg";
 
 export const BG_IMAGES = [bg1, bg2, bg3, bg4, bg5];
-const API = import.meta.env.VITE_API_URL || "https://mayavyuh.onrender.com";
+const API = import.meta.env.VITE_API_URL || "https://mayavyuh-backend.onrender.com";
 
-const API_URL = import.meta.env.VITE_API_URL || "https://mayavyuh.onrender.com";
+const API_URL = import.meta.env.VITE_API_URL || "https://mayavyuh-backend.onrender.com";
 
 export const GlobalStyles = () => (
   <style>{`
