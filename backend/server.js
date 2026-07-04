@@ -101,6 +101,18 @@ const io = new Server(server, {
 
 const PORT = process.env.PORT || 5000;
 
+// Start the Python Siamese daemon in the background
+const { spawn } = require('child_process');
+const path = require('path');
+const servicePath = path.join(__dirname, '../maya-ai-service/service.py');
+const pythonCmd = process.env.PYTHON_PATH ? process.env.PYTHON_PATH : (process.platform === 'win32' ? 'python' : 'python3');
+
+console.log('Starting Python Siamese Daemon on port 5001...');
+const pythonDaemon = spawn(pythonCmd, [servicePath, '5001']);
+pythonDaemon.stdout.on('data', data => console.log('Python Daemon:', data.toString().trim()));
+pythonDaemon.stderr.on('data', data => console.error('Python Daemon Error:', data.toString().trim()));
+pythonDaemon.on('close', code => console.log('Python Daemon exited with code', code));
+
 if (process.env.MONGO_URI) {
   mongoose.connect(process.env.MONGO_URI)
     .then(() => {
@@ -425,7 +437,7 @@ app.post('/api/similarity', async (req, res) => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ teamId, original_url, submitted_url }),
-        signal: AbortSignal.timeout(2500)
+        signal: AbortSignal.timeout(60000)
       });
       if (resp.ok) {
         const data = await resp.json();
