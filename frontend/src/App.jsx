@@ -1532,34 +1532,7 @@ const RoundDisplay = ({ playerLabel, targetImage, onComplete, onImageUploaded, r
             </div>
           </div>
 
-          {/* Modify Submission Button */}
-          <motion.button 
-            whileHover={{ scale: 1.03, boxShadow: "0 0 25px rgba(212, 175, 55, 0.4)" }}
-            whileTap={{ scale: 0.98 }}
-            onClick={() => {
-              setIsSubmitted(false);
-              try {
-                localStorage.removeItem(`maya_submitted_${teamId}_${storageKey}`);
-                localStorage.removeItem(`maya_sublink_${teamId}_${storageKey}`);
-              } catch (e) {}
-            }}
-            style={{ 
-              padding: "16px 36px", 
-              fontSize: 13, 
-              fontFamily: "'Orbitron', sans-serif",
-              fontWeight: 700,
-              letterSpacing: 3,
-              color: "#FFF",
-              background: "linear-gradient(135deg, rgba(140, 20, 30, 0.8) 0%, rgba(80, 10, 15, 0.9) 100%)",
-              border: "1px solid rgba(255, 100, 100, 0.5)",
-              borderRadius: 6,
-              cursor: "pointer",
-              boxShadow: "0 8px 20px rgba(0, 0, 0, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.2)",
-              transition: "all 0.3s ease"
-            }}
-          >
-            ❖ MODIFY SUBMISSION ❖
-          </motion.button>
+
         </motion.div>
       </motion.div>
     );

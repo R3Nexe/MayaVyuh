@@ -361,7 +361,7 @@ const AdminLogin = ({ onLogin }) => {
           )}
         </AnimatePresence>
 
-        <button type="submit" className="btn-imperial" style={{ width: "100%", padding: 20, letterSpacing: 6, fontSize: 14, marginTop: 16, display: "flex", justifyContent: "center", alignItems: "center", gap: 12 }}>
+        <button type="submit" title="Log into the admin dashboard." className="btn-imperial" style={{ width: "100%", padding: 20, letterSpacing: 6, fontSize: 14, marginTop: 16, display: "flex", justifyContent: "center", alignItems: "center", gap: 12 }}>
           AUTHENTICATE <Power size={16} />
         </button>
       </motion.form>
@@ -466,7 +466,7 @@ const ImageVaultSection = () => {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 32 }}>
         <div style={{ fontFamily: "'Cinzel', serif", fontSize: 32, letterSpacing: 4 }} className="imperial-gold-text">IMPERIAL IMAGE VAULT</div>
         <div style={{ display: "flex", gap: 16 }}>
-          <label className="btn-imperial" style={{ padding: "12px 32px", fontSize: 12, letterSpacing: 2 }}>
+          <label title="Upload a new target image to the vault." className="btn-imperial" style={{ padding: "12px 32px", fontSize: 12, letterSpacing: 2 }}>
             {loading ? "UPLOADING..." : "UPLOAD ARTIFACT"}
             <input type="file" accept="image/*" multiple style={{ display: "none" }} onChange={handleUpload} disabled={loading} />
           </label>
@@ -479,7 +479,7 @@ const ImageVaultSection = () => {
             <div style={{ position: "absolute", top: 12, left: 12, background: "rgba(0,0,0,0.9)", padding: "4px 12px", border: "1px solid rgba(212, 175, 55, 0.4)", color: "#D4AF37", fontSize: 10, letterSpacing: 2, zIndex: 10 }}>
               TEAM {img.teamNumber ? img.teamNumber : String(i + 1).padStart(2, '0')}
             </div>
-            <button onClick={() => handleDelete(img._id)} className="btn-imperial-danger" style={{ position: "absolute", top: 12, right: 12, width: 32, height: 32, display: "flex", justifyContent: "center", alignItems: "center", fontSize: 16, zIndex: 10 }}>×</button>
+            <button title="Remove this image from the vault." onClick={() => handleDelete(img._id)} className="btn-imperial-danger" style={{ position: "absolute", top: 12, right: 12, width: 32, height: 32, display: "flex", justifyContent: "center", alignItems: "center", fontSize: 16, zIndex: 10 }}>×</button>
             <img src={img.url} alt={`Artifact ${i}`} style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 0.8, transition: "opacity 0.3s" }} onMouseOver={e => e.currentTarget.style.opacity = 1} onMouseOut={e => e.currentTarget.style.opacity = 0.8} />
           </div>
         ))}
@@ -972,7 +972,7 @@ const AdminLeaderboard = () => {
                       TEAM {selectedTeam.teamNumber} • {selectedTeam.player1 || "PLAYER 1"} & {selectedTeam.player2 || "PLAYER 2"}
                     </div>
                   </div>
-                  <button onClick={() => setSelectedTeam(null)} className="btn-imperial-danger" style={{ padding: "10px 24px", fontSize: 12, letterSpacing: 2, borderRadius: 8, flexShrink: 0 }}>✕ CLOSE</button>
+                  <button title="Close the team details view." onClick={() => setSelectedTeam(null)} className="btn-imperial-danger" style={{ padding: "10px 24px", fontSize: 12, letterSpacing: 2, borderRadius: 8, flexShrink: 0 }}>✕ CLOSE</button>
                 </div>
 
                 {/* Scrollable Modal Content Area for All Screen Ratios */}
@@ -1180,15 +1180,15 @@ export const AdminDashboard = ({ teams, setTeams, eventState, setEventState }) =
                         <div style={{ display: "flex", gap: 16 }}>
                           {isActive && !session?.isPaused && (
                             <>
-                              <button onClick={() => gameAction('pause_round', r)} className="btn-imperial" style={{ padding: 16 }}>PAUSE</button>
-                              <button onClick={() => gameAction('end_round', r)} className="btn-imperial" style={{ padding: "16px 32px", fontSize: 12, letterSpacing: 2 }}>HALT</button>
+                              <button title="Pause the current round's timer." onClick={() => gameAction('pause_round', r)} className="btn-imperial" style={{ padding: 16 }}>PAUSE</button>
+                              <button title="Stop the current round immediately." onClick={() => gameAction('end_round', r)} className="btn-imperial" style={{ padding: "16px 32px", fontSize: 12, letterSpacing: 2 }}>HALT</button>
                             </>
                           )}
                           {isActive && session?.isPaused && (
-                            <button onClick={() => gameAction('resume_round', r)} className="btn-imperial" style={{ padding: "16px 32px", fontSize: 12, letterSpacing: 2, borderColor: "#D4AF37" }}>RESUME</button>
+                            <button title="Resume the paused round's timer." onClick={() => gameAction('resume_round', r)} className="btn-imperial" style={{ padding: "16px 32px", fontSize: 12, letterSpacing: 2, borderColor: "#D4AF37" }}>RESUME</button>
                           )}
                           {!isActive && canStart && (
-                            <button onClick={() => gameAction('start_round', r)} className="btn-imperial" style={{ padding: "16px 32px", fontSize: 12, letterSpacing: 2 }}>INITIATE</button>
+                            <button title="Start this round for all players." onClick={() => gameAction('start_round', r)} className="btn-imperial" style={{ padding: "16px 32px", fontSize: 12, letterSpacing: 2 }}>INITIATE</button>
                           )}
                         </div>
                       </div>
@@ -1280,7 +1280,7 @@ export const AdminDashboard = ({ teams, setTeams, eventState, setEventState }) =
                       {t.r2Link && <a href={t.r2Link} target="_blank" rel="noreferrer" style={{ fontSize: 10, color: "var(--neon-cyan)", textDecoration: "none", letterSpacing: 1 }}>➔ VERIFY R2 CHAT SNAPSHOT</a>}
                       {t.r3Link && <a href={t.r3Link} target="_blank" rel="noreferrer" style={{ fontSize: 10, color: "var(--neon-cyan)", textDecoration: "none", letterSpacing: 1 }}>➔ VERIFY R3 CHAT SNAPSHOT</a>}
                     </div>
-                    <button className={t.status === "banned" ? "btn-imperial" : "btn-imperial-danger"} style={{ padding: "12px", fontSize: 10, letterSpacing: 2, marginTop: 8 }} onClick={() => toggleBan(t.id)}>
+                    <button title="Ban or unban this team from the game." className={t.status === "banned" ? "btn-imperial" : "btn-imperial-danger"} style={{ padding: "12px", fontSize: 10, letterSpacing: 2, marginTop: 8 }} onClick={() => toggleBan(t.id)}>
                       {t.status === "banned" ? "RESTORE TO GLORY" : "BANISH FROM DATACRON"}
                     </button>
                   </div>
@@ -1359,19 +1359,19 @@ export const AdminDashboard = ({ teams, setTeams, eventState, setEventState }) =
               <div className="imperial-glass imperial-panel" style={{ padding: 48, textAlign: "center", border: "1px solid rgba(255,42,42,0.3)" }}>
                 <Power size={48} color="#ff2a2a" style={{ margin: "0 auto", marginBottom: 24 }} />
                 <div style={{ fontSize: 20, color: "#ff2a2a", letterSpacing: 2, marginBottom: 24, fontFamily: "'Cinzel', serif" }}>TERMINATE</div>
-                <button onClick={() => gameAction('finish')} className="btn-imperial-danger" style={{ width: "100%", padding: "16px", fontSize: 12, letterSpacing: 4 }}>EXECUTE</button>
+                <button title="End the game and show the final results to everyone." onClick={() => gameAction('finish')} className="btn-imperial-danger" style={{ width: "100%", padding: "16px", fontSize: 12, letterSpacing: 4 }}>EXECUTE</button>
               </div>
 
               <div className="imperial-glass imperial-panel" style={{ padding: 48, textAlign: "center", border: "1px solid rgba(212,175,55,0.3)" }}>
                 <RefreshCw size={48} color="#D4AF37" style={{ margin: "0 auto", marginBottom: 24 }} />
                 <div style={{ fontSize: 20, color: "#D4AF37", letterSpacing: 2, marginBottom: 24, fontFamily: "'Cinzel', serif" }}>SEED CORE</div>
-                <button onClick={seedDatabase} className="btn-imperial" style={{ width: "100%", padding: "16px", fontSize: 12, letterSpacing: 4 }}>EXECUTE</button>
+                <button title="Add sample dummy teams for testing." onClick={seedDatabase} className="btn-imperial" style={{ width: "100%", padding: "16px", fontSize: 12, letterSpacing: 4 }}>EXECUTE</button>
               </div>
 
               <div className="imperial-glass imperial-panel" style={{ padding: 48, textAlign: "center", border: "1px solid rgba(255,42,42,0.3)" }}>
                 <Skull size={48} color="#ff2a2a" style={{ margin: "0 auto", marginBottom: 24 }} />
                 <div style={{ fontSize: 20, color: "#ff2a2a", letterSpacing: 2, marginBottom: 24, fontFamily: "'Cinzel', serif" }}>PURGE ALL</div>
-                <button onClick={globalReset} className="btn-imperial-danger" style={{ width: "100%", padding: "16px", fontSize: 12, letterSpacing: 4 }}>EXECUTE</button>
+                <button title="Erase all game data and reset everything." onClick={globalReset} className="btn-imperial-danger" style={{ width: "100%", padding: "16px", fontSize: 12, letterSpacing: 4 }}>EXECUTE</button>
               </div>
             </div>
           </motion.div>
@@ -1382,7 +1382,7 @@ export const AdminDashboard = ({ teams, setTeams, eventState, setEventState }) =
   return (
     <div className="imperial-bg" style={{ minHeight: "100vh", display: "flex", flexDirection: "column", color: "#e2e8f0", paddingBottom: 120 }}>
       <motion.div initial={{ y: -50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 1 }} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "24px 64px", borderBottom: "1px solid rgba(212, 175, 55, 0.1)", background: "rgba(0,0,0,0.5)", zIndex: 10 }}>
-        <button onClick={() => window.location.reload()} className="btn-imperial-danger" style={{ padding: "8px 24px", fontSize: 10, letterSpacing: 3, display: "flex", alignItems: "center", gap: 8 }}>
+        <button title="Reload the page to fix glitches." onClick={() => window.location.reload()} className="btn-imperial-danger" style={{ padding: "8px 24px", fontSize: 10, letterSpacing: 3, display: "flex", alignItems: "center", gap: 8 }}>
           <Power size={12} /> RELINQUISH THRONE
         </button>
         <div style={{ display: "flex", alignItems: "center", gap: 24 }}>
