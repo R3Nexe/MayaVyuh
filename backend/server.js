@@ -107,8 +107,8 @@ const path = require('path');
 const servicePath = path.join(__dirname, '../maya-ai-service/service.py');
 const pythonCmd = process.env.PYTHON_PATH ? process.env.PYTHON_PATH : (process.platform === 'win32' ? 'python' : 'python3');
 
-console.log('Starting Python Siamese Daemon on port 5001...');
-const pythonDaemon = spawn(pythonCmd, [servicePath, '5001']);
+console.log('Starting Python Siamese Daemon on port 5050...');
+const pythonDaemon = spawn(pythonCmd, [servicePath, '5050']);
 pythonDaemon.stdout.on('data', data => console.log('Python Daemon:', data.toString().trim()));
 pythonDaemon.stderr.on('data', data => console.error('Python Daemon Error:', data.toString().trim()));
 pythonDaemon.on('close', code => console.log('Python Daemon exited with code', code));
@@ -433,7 +433,7 @@ app.post('/api/similarity', async (req, res) => {
     }
 
     try {
-      const resp = await fetch('http://127.0.0.1:5001/api/similarity', {
+      const resp = await fetch('http://127.0.0.1:5050/api/similarity', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ teamId, original_url, submitted_url }),
