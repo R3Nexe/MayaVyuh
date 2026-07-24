@@ -223,16 +223,6 @@ router.get('/admin/leaderboard', async (req, res) => {
           obj.referenceImageUrl = "https://picsum.photos/seed/default/800/800";
         }
       }
-      if (!obj.score || obj.score <= 0) {
-        let hash = 0;
-        const str = String(t._id || "") + String(obj.referenceImageUrl || "") + String(obj.finalImageUrl || "");
-        for (let i = 0; i < str.length; i++) { hash = (hash * 31 + str.charCodeAt(i)) % 1000; }
-        obj.score = Math.round((71.5 + (hash % 180) / 10.0) * 10) / 10;
-        try {
-          await Team.findByIdAndUpdate(t._id, { score: obj.score });
-          await Submission.findOneAndUpdate({ team: t._id, round: 3 }, { similarityScore: obj.score });
-        } catch (e) {}
-      }
       return obj;
     }));
     formattedTeams.sort((a, b) => (b.score || 0) - (a.score || 0) || (a.totalTime || 0) - (b.totalTime || 0));
