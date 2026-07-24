@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Network, Database, MonitorPlay, BarChart3, Zap, Skull, Power, Play, Pause, Square, AlertTriangle, ShieldAlert, Cpu, Clock, Activity, RefreshCw } from "lucide-react";
 import { broadcastEvent } from "./useSync.js";
+import { ScoreDigits } from "./ScoreReveal.jsx";
 import gdgLogo from "./assets/gdg-logo.png";
 import bg1 from "./assets/bg-1.jpg";
 import bg2 from "./assets/bg-2.jpg";
@@ -765,17 +766,37 @@ const ApiLogsPanel = () => {
 const AdminLeaderboard = () => {
   const [teams, setTeams] = useState([]);
   const [selectedTeam, setSelectedTeam] = useState(null);
+  const [retryingIds, setRetryingIds] = useState(() => new Set());
 
-  useEffect(() => {
-    fetch(`${API}/api/admin/leaderboard`)
+  const fetchLeaderboard = () => {
+    return fetch(`${API}/api/admin/leaderboard`)
       .then(res => res.json())
       .then(data => {
         if (data.success) {
-          setTeams(data.teams.filter(t => t.score >= 0).sort((a, b) => b.score - a.score));
+          const sorted = data.teams.filter(t => t.score >= 0).sort((a, b) => b.score - a.score);
+          setTeams(sorted);
+          return sorted;
         }
+        return null;
       })
-      .catch(console.error);
-  }, []);
+      .catch(err => { console.error(err); return null; });
+  };
+
+  useEffect(() => { fetchLeaderboard(); }, []);
+
+  const handleRetrySimilarity = async (teamId) => {
+    setRetryingIds(prev => new Set(prev).add(teamId));
+    try {
+      await fetch(`${API}/api/admin/teams/${teamId}/retry-similarity`, { method: "POST" });
+    } catch (err) {
+      console.error("Retry similarity failed:", err);
+    }
+    const refreshed = await fetchLeaderboard();
+    if (refreshed) {
+      setSelectedTeam(prev => (prev ? refreshed.find(t => t._id === prev._id) || prev : prev));
+    }
+    setRetryingIds(prev => { const next = new Set(prev); next.delete(teamId); return next; });
+  };
 
   const totalTeams = teams.length;
   const topScore = totalTeams > 0 ? teams[0].score : 0;
@@ -893,9 +914,24 @@ const AdminLeaderboard = () => {
 
               <div style={{ textAlign: "right" }}>
                 <div style={{ fontSize: 11, color: "var(--text-dim)", fontFamily: "'Orbitron'", letterSpacing: 2, marginBottom: 2 }}>SIMILARITY RATING</div>
-                <div style={{ fontSize: 36, fontFamily: "'Orbitron', sans-serif", color: scoreColor, fontWeight: 900, textShadow: isGold ? "0 0 15px rgba(255,223,115,0.6)" : "none" }}>
-                  {t.score ? t.score.toFixed(1) + "%" : "0.0%"}
-                </div>
+                <ScoreDigits
+                  status={t.score > 0 ? "revealed" : "pending"}
+                  score={t.score}
+                  size={36}
+                  revealedColor={scoreColor}
+                  style={{ fontFamily: "'Orbitron', sans-serif", textShadow: isGold ? "0 0 15px rgba(255,223,115,0.6)" : "none" }}
+                />
+                {t.score <= 0 && t.finalImageUrl && (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); handleRetrySimilarity(t._id); }}
+                    disabled={retryingIds.has(t._id)}
+                    title="Retry the AI similarity check for this team"
+                    style={{ marginTop: 6, display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(0,255,255,0.08)", border: "1px solid rgba(0,255,200,0.4)", color: "var(--neon-cyan)", borderRadius: 20, padding: "4px 12px", fontSize: 10, fontFamily: "'Orbitron'", letterSpacing: 1, cursor: retryingIds.has(t._id) ? "default" : "pointer", opacity: retryingIds.has(t._id) ? 0.6 : 1 }}
+                  >
+                    <RefreshCw size={11} style={{ animation: retryingIds.has(t._id) ? "spin-slow 1s linear infinite" : "none" }} />
+                    {retryingIds.has(t._id) ? "RETRYING..." : "RETRY VERDICT"}
+                  </button>
+                )}
               </div>
 
               <div style={{ fontSize: 20, color: "rgba(212,175,55,0.6)", paddingLeft: 12 }}>➔</div>
@@ -915,7 +951,8 @@ const AdminLeaderboard = () => {
         {selectedTeam && (() => {
           const refImg = selectedTeam.referenceImageUrl || selectedTeam.r1Img || selectedTeam.r2Img || null;
           const subImg = selectedTeam.finalImageUrl || selectedTeam.finalImage || selectedTeam.r3Img || selectedTeam.r2Img || selectedTeam.r1Img || null;
-          const simScore = selectedTeam.score ? selectedTeam.score.toFixed(1) : "0.0";
+          const simScoreStatus = selectedTeam.score > 0 ? "revealed" : "pending";
+          const simScoreValue = selectedTeam.score || 0;
 
           return (
             <motion.div 
@@ -1022,16 +1059,30 @@ const AdminLeaderboard = () => {
                   <div style={{ background: "rgba(0,0,0,0.7)", padding: "16px 24px", borderRadius: 12, border: "1px solid rgba(212,175,55,0.3)", display: "flex", alignItems: "center", gap: 20, flexWrap: "wrap" }}>
                     <div style={{ minWidth: 160 }}>
                       <div style={{ fontSize: 10, fontFamily: "'Orbitron'", color: "var(--text-dim)", letterSpacing: 2 }}>DATACRON VERDICT</div>
-                      <div style={{ fontSize: 22, fontFamily: "'Orbitron'", fontWeight: 900, color: "#D4AF37", marginTop: 2 }}>{simScore}% MATCH</div>
+                      <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginTop: 2 }}>
+                        <ScoreDigits status={simScoreStatus} score={simScoreValue} size={22} revealedColor="#D4AF37" />
+                        <span style={{ fontSize: 22, fontFamily: "'Orbitron'", fontWeight: 900, color: "#D4AF37" }}>MATCH</span>
+                      </div>
                     </div>
                     <div style={{ flex: "1 1 200px", background: "rgba(255,255,255,0.1)", height: 14, borderRadius: 10, overflow: "hidden", padding: 2, border: "1px solid rgba(212,175,55,0.3)" }}>
-                      <motion.div 
-                        initial={{ width: 0 }} 
-                        animate={{ width: `${Math.min(100, Math.max(0, parseFloat(simScore)))}%` }} 
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: `${Math.min(100, Math.max(0, simScoreValue))}%` }}
                         transition={{ duration: 1, ease: "easeOut" }}
-                        style={{ height: "100%", background: "linear-gradient(90deg, #D4AF37, var(--neon-green))", borderRadius: 8, boxShadow: "0 0 12px rgba(212,175,55,0.8)" }} 
+                        style={{ height: "100%", background: "linear-gradient(90deg, #D4AF37, var(--neon-green))", borderRadius: 8, boxShadow: "0 0 12px rgba(212,175,55,0.8)" }}
                       />
                     </div>
+                    {simScoreStatus === "pending" && subImg && (
+                      <button
+                        onClick={() => handleRetrySimilarity(selectedTeam._id)}
+                        disabled={retryingIds.has(selectedTeam._id)}
+                        title="Retry the AI similarity check for this team"
+                        style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(0,255,255,0.08)", border: "1px solid rgba(0,255,200,0.4)", color: "var(--neon-cyan)", borderRadius: 20, padding: "10px 18px", fontSize: 12, fontFamily: "'Orbitron'", letterSpacing: 1, cursor: retryingIds.has(selectedTeam._id) ? "default" : "pointer", opacity: retryingIds.has(selectedTeam._id) ? 0.6 : 1 }}
+                      >
+                        <RefreshCw size={14} style={{ animation: retryingIds.has(selectedTeam._id) ? "spin-slow 1s linear infinite" : "none" }} />
+                        {retryingIds.has(selectedTeam._id) ? "RETRYING..." : "RETRY VERDICT"}
+                      </button>
+                    )}
                   </div>
                 </div>
               </motion.div>

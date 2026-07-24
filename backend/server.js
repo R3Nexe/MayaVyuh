@@ -571,6 +571,38 @@ app.post('/api/similarity', async (req, res) => {
   }
 });
 
+// Admin: re-run the similarity check for a team whose score never came back
+// (e.g. the AI service was down when the player submitted). Reuses the exact
+// same fallback chain as /api/similarity by calling it internally, so scoring
+// logic isn't duplicated.
+app.post('/api/admin/teams/:id/retry-similarity', async (req, res) => {
+  try {
+    const team = await Team.findById(req.params.id);
+    if (!team) return res.status(404).json({ error: 'Team not found' });
+
+    const submitted_url = team.finalImage || team.r3Img || team.r2Img || team.r1Img;
+    if (!submitted_url) {
+      return res.status(400).json({ error: 'Team has no submission to score yet' });
+    }
+
+    const allImages = await ImageBank.find().sort({ teamNumber: 1 });
+    if (allImages.length === 0) {
+      return res.status(400).json({ error: 'No reference images configured' });
+    }
+    const original_url = allImages[(team.teamNumber - 1) % allImages.length].url;
+
+    const response = await fetch(`http://127.0.0.1:${PORT}/api/similarity`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ teamId: team._id.toString(), original_url, submitted_url })
+    });
+    const data = await response.json();
+    res.status(response.status).json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.post('/api/generate', async (req, res) => {
   try {
     const { prompt } = req.body;
