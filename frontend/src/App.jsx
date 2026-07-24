@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Shield, User, Users, Crosshair } from "lucide-react";
 import { broadcastEvent, useEventListener } from "./useSync.js";
+import { ScoreDigits } from "./ScoreReveal.jsx";
 import { AdminDashboard, SceneWrapper, GlobalStyles, BG_IMAGES } from "./AdminComponents.jsx";
 import gdgLogo from "./assets/gdg-logo.png";
 const API = import.meta.env.VITE_API_URL || "https://mayavyuh-backend.onrender.com";
@@ -1023,7 +1024,7 @@ const LobbyScreen = () => (
       <h1 className="title-primary" style={{ fontSize: 40, letterSpacing: 6, color: "var(--neon-gold)", textShadow: "0 0 25px rgba(212,175,55,0.65)", marginBottom: 22 }}>
         AWAITING OVERRIDE
       </h1>
-      
+
       {/* Classic Gold Filigree Divider */}
       <div style={{ width: 160, height: 2, background: "linear-gradient(90deg, transparent, #D4AF37, transparent)", margin: "0 auto 28px auto" }} />
 
@@ -1208,7 +1209,7 @@ const IntervalScreen = ({ title, message, timeLeft, isPaused, localDurationKey, 
           {title}
         </h1>
         <div style={{ width: 140, height: 2, background: "linear-gradient(90deg, transparent, #D4AF37, transparent)", margin: "0 auto 24px auto" }} />
-        
+
         <div style={{ fontFamily: "'Share Tech Mono'", color: "var(--text-main)", fontSize: 18, maxWidth: 580, margin: "0 auto 32px auto", lineHeight: 1.6, background: "rgba(0,0,0,0.5)", padding: "16px 20px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.08)" }}>
           {message}
         </div>
@@ -1383,20 +1384,20 @@ const RoundDisplay = ({ playerLabel, targetImage, onComplete, onImageUploaded, r
 
   if (isSubmitted && !effectivelyEnded) {
     return (
-      <motion.div 
-        layout 
-        initial={{ opacity: 0, scale: 0.95 }} 
-        animate={{ opacity: 1, scale: 1 }} 
+      <motion.div
+        layout
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-        style={{ 
-          display: "flex", 
-          flexDirection: "column", 
-          alignItems: "center", 
-          justifyContent: "center", 
-          minHeight: "100vh", 
-          width: "100%", 
-          padding: "40px 20px", 
-          zIndex: 10, 
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          minHeight: "100vh",
+          width: "100%",
+          padding: "40px 20px",
+          zIndex: 10,
           position: "relative",
           background: "radial-gradient(circle at 50% 30%, rgba(60, 40, 10, 0.35) 0%, rgba(10, 8, 14, 0.85) 60%, rgba(3, 2, 5, 0.98) 100%)"
         }}
@@ -1406,18 +1407,18 @@ const RoundDisplay = ({ playerLabel, targetImage, onComplete, onImageUploaded, r
         {/* Ambient background gold glow particles */}
         <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: "800px", height: "800px", background: "radial-gradient(circle, rgba(212, 175, 55, 0.08) 0%, transparent 70%)", pointerEvents: "none", filter: "blur(40px)" }} />
 
-        <motion.div 
+        <motion.div
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.2, duration: 0.7 }}
-          style={{ 
-            width: "100%", 
-            maxWidth: 760, 
-            textAlign: "center", 
-            padding: "56px 48px", 
+          style={{
+            width: "100%",
+            maxWidth: 760,
+            textAlign: "center",
+            padding: "56px 48px",
             borderRadius: 16,
             background: "linear-gradient(145deg, rgba(24, 20, 28, 0.85) 0%, rgba(12, 10, 16, 0.95) 100%)",
-            border: "1px solid rgba(212, 175, 55, 0.4)", 
+            border: "1px solid rgba(212, 175, 55, 0.4)",
             boxShadow: "0 30px 80px rgba(0, 0, 0, 0.9), 0 0 50px rgba(212, 175, 55, 0.15), inset 0 1px 2px rgba(255, 235, 170, 0.3), inset 0 -1px 2px rgba(0, 0, 0, 0.8)",
             position: "relative",
             overflow: "hidden",
@@ -1429,12 +1430,12 @@ const RoundDisplay = ({ playerLabel, targetImage, onComplete, onImageUploaded, r
 
           {/* Animated Royal Emblem */}
           <div style={{ position: "relative", width: 100, height: 100, margin: "0 auto 28px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <motion.div 
+            <motion.div
               animate={{ rotate: 360 }}
               transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
               style={{ position: "absolute", inset: 0, borderRadius: "50%", border: "1px dashed rgba(212, 175, 55, 0.4)", boxShadow: "0 0 20px rgba(212, 175, 55, 0.1)" }}
             />
-            <motion.div 
+            <motion.div
               animate={{ rotate: -360 }}
               transition={{ duration: 18, repeat: Infinity, ease: "linear" }}
               style={{ position: "absolute", inset: 8, borderRadius: "50%", border: "1px dotted rgba(212, 175, 55, 0.6)" }}
@@ -1449,11 +1450,11 @@ const RoundDisplay = ({ playerLabel, targetImage, onComplete, onImageUploaded, r
           </div>
 
           {/* Title */}
-          <h1 style={{ 
-            fontFamily: "'Cinzel', 'Orbitron', serif", 
-            fontSize: 34, 
-            fontWeight: 900, 
-            letterSpacing: 4, 
+          <h1 style={{
+            fontFamily: "'Cinzel', 'Orbitron', serif",
+            fontSize: 34,
+            fontWeight: 900,
+            letterSpacing: 4,
             margin: "0 0 12px 0",
             background: "linear-gradient(135deg, #FFFFFF 0%, #F5E6B3 35%, #D4AF37 70%, #AA771C 100%)",
             WebkitBackgroundClip: "text",
@@ -1472,11 +1473,11 @@ const RoundDisplay = ({ playerLabel, targetImage, onComplete, onImageUploaded, r
           </div>
 
           {/* Security Vault Notification */}
-          <div style={{ 
-            background: "linear-gradient(90deg, rgba(40, 15, 20, 0.6) 0%, rgba(20, 12, 18, 0.8) 50%, rgba(40, 15, 20, 0.6) 100%)", 
-            border: "1px solid rgba(255, 60, 60, 0.3)", 
-            borderRadius: 8, 
-            padding: "16px 24px", 
+          <div style={{
+            background: "linear-gradient(90deg, rgba(40, 15, 20, 0.6) 0%, rgba(20, 12, 18, 0.8) 50%, rgba(40, 15, 20, 0.6) 100%)",
+            border: "1px solid rgba(255, 60, 60, 0.3)",
+            borderRadius: 8,
+            padding: "16px 24px",
             marginBottom: 36,
             display: "inline-block",
             maxWidth: "90%",
@@ -1490,14 +1491,14 @@ const RoundDisplay = ({ playerLabel, targetImage, onComplete, onImageUploaded, r
               Your submission is locked in the sanctuary. You must remain at this terminal until the trial countdown concludes.
             </div>
           </div>
-          
+
           {/* Luxury Chronometer Display */}
-          <div style={{ 
-            background: "linear-gradient(180deg, rgba(20, 16, 22, 0.9) 0%, rgba(8, 6, 10, 0.95) 100%)", 
-            padding: "28px 36px", 
-            borderRadius: 12, 
-            border: "1px solid rgba(212, 175, 55, 0.35)", 
-            boxShadow: "0 15px 35px rgba(0,0,0,0.7), inset 0 0 30px rgba(212, 175, 55, 0.08)", 
+          <div style={{
+            background: "linear-gradient(180deg, rgba(20, 16, 22, 0.9) 0%, rgba(8, 6, 10, 0.95) 100%)",
+            padding: "28px 36px",
+            borderRadius: 12,
+            border: "1px solid rgba(212, 175, 55, 0.35)",
+            boxShadow: "0 15px 35px rgba(0,0,0,0.7), inset 0 0 30px rgba(212, 175, 55, 0.08)",
             marginBottom: 36,
             position: "relative"
           }}>
@@ -1507,17 +1508,17 @@ const RoundDisplay = ({ playerLabel, targetImage, onComplete, onImageUploaded, r
             <div style={{ position: "absolute", bottom: 8, right: 8, width: 8, height: 8, borderBottom: "1px solid #D4AF37", borderRight: "1px solid #D4AF37" }} />
 
             <div style={{ fontSize: 11, fontFamily: "'Orbitron', sans-serif", color: "rgba(212, 175, 55, 0.8)", letterSpacing: 5, marginBottom: 12 }}>ROUND TIME REMAINING</div>
-            
-            <motion.div 
+
+            <motion.div
               animate={{ opacity: [0.95, 1, 0.95] }}
               transition={{ duration: 2, repeat: Infinity }}
-              style={{ 
-                fontSize: 60, 
-                fontFamily: "'Orbitron', sans-serif", 
+              style={{
+                fontSize: 60,
+                fontFamily: "'Orbitron', sans-serif",
                 fontWeight: 900,
                 letterSpacing: 4,
-                color: "#FDF5E6", 
-                textShadow: "0 0 20px rgba(212,175,55,0.7), 0 0 40px rgba(212,175,55,0.3), 0 2px 4px rgba(0,0,0,0.8)" 
+                color: "#FDF5E6",
+                textShadow: "0 0 20px rgba(212,175,55,0.7), 0 0 40px rgba(212,175,55,0.3), 0 2px 4px rgba(0,0,0,0.8)"
               }}
             >
               {fmtTime(timeLeft)}
@@ -1592,7 +1593,7 @@ const RoundDisplay = ({ playerLabel, targetImage, onComplete, onImageUploaded, r
               </div>
               <div style={{ display: "flex", gap: 16 }}>
                 <button className="btn-imperial-danger" style={{ flex: 1, padding: 16 }} onClick={() => setUploadedImgUrl(null)}>RETRY</button>
-                {/* 
+                {/*
                   // Original feature: submission not allowed till timer ends
                   <button className="btn-imperial" style={{ flex: 2, padding: 16, borderColor: (!effectivelyEnded ? "var(--text-dim)" : "var(--neon-green)"), color: (!effectivelyEnded ? "var(--text-dim)" : "var(--neon-green)"), opacity: (verifying || !effectivelyEnded) ? 0.5 : 1, cursor: !effectivelyEnded ? "not-allowed" : "pointer" }} onClick={effectivelyEnded ? handleSubmit : undefined} disabled={verifying || !effectivelyEnded}>{verifying ? "VERIFYING..." : (!effectivelyEnded ? "AWAITING ROUND END..." : "SUBMIT TO DATACRON ➔")}</button>
                 */}
@@ -1669,11 +1670,12 @@ const SelectionScreen = ({ imgR2, imgR3, onSelect }) => (
   </div>
 );
 
-const JudgmentScreen = ({ originalImg, finalImg, score, onRedirect }) => {
+const JudgmentScreen = ({ originalImg, finalImg, score, scoreStatus, onRedirect }) => {
   const [countdown, setCountdown] = useState(60);
+  const status = scoreStatus || (score === null || score === undefined ? "pending" : "revealed");
 
   useEffect(() => {
-    if (score === null || score === undefined) return; // Wait until AI Siamese model finishes scoring!
+    if (status !== "revealed") return; // Wait until AI Siamese model finishes scoring!
     const timer = setInterval(() => {
       setCountdown((prev) => {
         if (prev <= 1) {
@@ -1685,21 +1687,27 @@ const JudgmentScreen = ({ originalImg, finalImg, score, onRedirect }) => {
       });
     }, 1000);
     return () => clearInterval(timer);
-  }, [score, onRedirect]);
+  }, [status, onRedirect]);
 
-  const isScoring = score === null || score === undefined;
+  const isPending = status === "pending";
+  const isError = status === "error";
+  const headerColor = isError ? "#ff2a2a" : isPending ? "var(--neon-cyan)" : "var(--neon-gold)";
 
   return (
     <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 40, position: "relative", zIndex: 1 }}>
       <img src={gdgLogo} alt="GDG Logo" style={{ width: 80, marginBottom: 20 }} />
       <div className="title-primary" style={{ marginBottom: 20, color: "var(--neon-gold)", textShadow: "0 0 20px var(--neon-gold)", animation: "pulse 2s infinite" }}>SIMILARITY RESULTS</div>
-      
-      <div style={{ fontFamily: "'Orbitron'", color: isScoring ? "var(--neon-cyan)" : "var(--neon-gold)", fontSize: 26, marginBottom: 16, letterSpacing: 4, textAlign: "center", textShadow: isScoring ? "0 0 15px var(--neon-cyan)" : "0 0 20px var(--neon-gold)" }}>
-        {isScoring ? "⏳ SIAMESE NEURAL NET COMPUTING VERDICT..." : "⚡ SPELL MATCH VERDICT SEALED ⚡"}
+
+      <div style={{ fontFamily: "'Orbitron'", color: headerColor, fontSize: 26, marginBottom: 16, letterSpacing: 4, textAlign: "center", textShadow: `0 0 20px ${headerColor}` }}>
+        {isError ? "⚠️ VERDICT UNAVAILABLE" : isPending ? "⏳ SIAMESE NEURAL NET COMPUTING VERDICT..." : "⚡ SPELL MATCH VERDICT SEALED ⚡"}
       </div>
 
       <div style={{ fontFamily: "'Share Tech Mono'", color: "var(--neon-gold)", fontSize: 16, marginBottom: 40, letterSpacing: 2, background: "rgba(0,0,0,0.6)", padding: "10px 24px", borderRadius: 4, border: "1px solid rgba(212,175,55,0.4)" }}>
-        {isScoring ? (
+        {isError ? (
+          <span style={{ color: "#ff2a2a" }}>
+            AI SERVICE DID NOT RESPOND — NOTIFY ADMIN
+          </span>
+        ) : isPending ? (
           <span style={{ color: "var(--neon-cyan)", animation: "pulse 1.5s infinite" }}>
             🤖 EVALUATING HIGH-RES PIXEL MATRIX (~30-40s)... PLEASE HOLD POSITION
           </span>
@@ -1715,15 +1723,15 @@ const JudgmentScreen = ({ originalImg, finalImg, score, onRedirect }) => {
           <div className="title-secondary">TARGET DATACRON</div>
           <img src={originalImg} alt="orig" style={{ width: "100%", aspectRatio: "1/1", objectFit: "contain", borderRadius: 8, boxShadow: "0 0 30px rgba(0,0,0,0.8)" }} />
         </div>
-        <div style={{ width: 300, textAlign: "center", animation: isScoring ? "pulse 1.5s infinite" : "float 4s infinite" }}>
-          {isScoring ? (
-            <div style={{ padding: 20, background: "rgba(0,255,255,0.05)", borderRadius: 12, border: "1px dashed var(--neon-cyan)" }}>
-              <div style={{ fontSize: 40, marginBottom: 10 }}>🤖⚡</div>
-              <div style={{ fontFamily: "'Orbitron'", color: "var(--neon-cyan)", fontSize: 18, letterSpacing: 2 }}>ANALYZING...</div>
+        <div style={{ width: 300, textAlign: "center", animation: isPending ? "pulse 1.5s infinite" : "float 4s infinite" }}>
+          {isError ? (
+            <div style={{ padding: 20, background: "rgba(255,42,42,0.05)", borderRadius: 12, border: "1px dashed #ff2a2a" }}>
+              <div style={{ fontSize: 40, marginBottom: 10 }}>⚠️</div>
+              <div style={{ fontFamily: "'Orbitron'", color: "#ff2a2a", fontSize: 16, letterSpacing: 2 }}>NO VERDICT</div>
             </div>
           ) : (
             <div>
-              <div style={{ fontSize: 84, fontFamily: "'Orbitron'", color: "var(--neon-gold)", textShadow: "0 0 35px var(--neon-gold)", fontWeight: 900, lineHeight: 1 }}>{score.toFixed(1)}%</div>
+              <ScoreDigits status={status} score={score} size={84} />
               <div style={{ fontFamily: "'Share Tech Mono'", color: "var(--neon-cyan)", letterSpacing: 6, fontSize: 16, marginTop: 12, fontWeight: "bold" }}>SIAMESE MATCH</div>
             </div>
           )}
@@ -1733,6 +1741,16 @@ const JudgmentScreen = ({ originalImg, finalImg, score, onRedirect }) => {
           <img src={finalImg} alt="final" style={{ width: "100%", aspectRatio: "1/1", objectFit: "contain", borderRadius: 8, boxShadow: "0 0 30px rgba(0,0,0,0.8)" }} />
         </div>
       </div>
+
+      {isError && (
+        <button
+          onClick={onRedirect}
+          className="btn-imperial"
+          style={{ marginTop: 40, padding: "16px 40px", letterSpacing: 4, fontSize: 14, cursor: "pointer" }}
+        >
+          RETURN TO LOBBY
+        </button>
+      )}
     </div>
   );
 };
@@ -1840,6 +1858,7 @@ const PlayerSection = ({ globalTeams, setGlobalTeams }) => {
   const setR3Img = (img) => updateTeamStatus({ r3Img: img });
   const setFinalImg = (img) => updateTeamStatus({ finalImage: img });
   const setScore = (s) => updateTeamStatus({ score: s });
+  const [scoreStatus, setScoreStatus] = useState("pending");
 
   const [session, setSession] = useState(null);
 
@@ -2015,30 +2034,35 @@ const PlayerSection = ({ globalTeams, setGlobalTeams }) => {
   if (phase === "select") return <SelectionScreen imgR2={r2Img} imgR3={r3Img} onSelect={async (img) => {
     setFinalImg(img);
     setPhase("judgment");
-    try {
-      const res = await fetch(`${API}/api/similarity`, {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ teamId: myTeam.id, original_url: targetImage, submitted_url: img })
-      });
-      const data = await res.json();
-      let s = data.similarity_score;
-      if (!s || s <= 0) {
-        let hash = 0; const str = String(myTeam?.id || "") + String(targetImage) + String(img);
-        for (let i = 0; i < str.length; i++) { hash = (hash * 31 + str.charCodeAt(i)) % 1000; }
-        s = Math.round((72.0 + (hash % 160) / 10.0) * 10) / 10;
+    setScoreStatus("pending");
+
+    const MAX_ATTEMPTS = 3;
+    for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+      try {
+        const res = await fetch(`${API}/api/similarity`, {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ teamId: myTeam.id, original_url: targetImage, submitted_url: img })
+        });
+        const data = await res.json();
+        if (res.ok && typeof data.similarity_score === "number") {
+          setScore(data.similarity_score);
+          setScoreStatus("revealed");
+          updateTeamStatus({ round: 3, score: data.similarity_score, finalImage: img });
+          return;
+        }
+        throw new Error(data.error || "Invalid similarity response");
+      } catch (e) {
+        console.error(`Similarity request failed (attempt ${attempt}/${MAX_ATTEMPTS}):`, e);
+        if (attempt === MAX_ATTEMPTS) {
+          setScoreStatus("error");
+          updateTeamStatus({ round: 3, finalImage: img });
+        } else {
+          await new Promise(r => setTimeout(r, attempt * 1000));
+        }
       }
-      setScore(s);
-      updateTeamStatus({ round: 3, score: s, finalImage: img });
-    } catch (e) {
-      console.error("Similarity request failed, using local estimation:", e);
-      let hash = 0; const str = String(myTeam?.id || "") + String(targetImage) + String(img);
-      for (let i = 0; i < str.length; i++) { hash = (hash * 31 + str.charCodeAt(i)) % 1000; }
-      const s = Math.round((72.0 + (hash % 160) / 10.0) * 10) / 10;
-      setScore(s);
-      updateTeamStatus({ round: 3, score: s, finalImage: img });
     }
   }} />;
-  if (phase === "judgment") return <JudgmentScreen originalImg={targetImage} finalImg={finalImg} score={score} onRedirect={() => setPhase("leaderboard")} />;
+  if (phase === "judgment") return <JudgmentScreen originalImg={targetImage} finalImg={finalImg} score={score} scoreStatus={scoreStatus} onRedirect={() => setPhase("leaderboard")} />;
   if (phase === "leaderboard") return <LeaderboardRedirect teams={globalTeams} />;
 
   return null;
@@ -2089,4 +2113,3 @@ export default function App() {
     </>
   );
 }
-
